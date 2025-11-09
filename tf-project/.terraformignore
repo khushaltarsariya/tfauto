@@ -1,0 +1,25 @@
+# Ignore local Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Ignore variable and plan files
+*.tfvars
+*.tfvars.json
+*.plan
+
+# Ignore backup and crash logs
+*.bak
+*.log
+crash.log
+crash.*.log
+
+# Ignore example or test files
+examples/
+tests/
+
+# Ignore docs or scripts not needed in registry
+README.md
+LICENSE
+scripts/
