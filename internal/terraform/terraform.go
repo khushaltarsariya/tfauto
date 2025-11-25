@@ -1,13 +1,30 @@
 package terraform
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
-func runInDir(dir string, name string, args ...string) error {
-	cmd := exec.Command(name, args...)
+func runInDir(ctx context.Context, dir string, name string, args ...string) error {
+	//ensuring binary exist
+
+	if _, err := exec.LookPath(name); err != nil {
+		return fmt.Errorf("%s not found in PATH %w", name, err)
+	}
+
+	//option:validate dir exist
+	if dir == "" {
+		dir = "."
+	}
+
+	if _, err := os.Stat(dir); err != nil {
+		return fmt.Errorf("path %s does not exist %w ", dir, err)
+	}
+
+	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -15,22 +32,58 @@ func runInDir(dir string, name string, args ...string) error {
 	return cmd.Run()
 }
 
-func Init(path string) error {
+func Init(ctx context.Context, path string) error {
 	fmt.Println("Terraform Init")
-	return runInDir(path, "terraform", "init", "-input=false")
+	return runInDir(ctx, path, "terraform", "init", "-input=false")
 }
 
-func Plan(path string) error {
+func Plan(ctx context.Context, path string) error {
 	fmt.Println("terraform plan")
-	return runInDir(path, "terraform", "plan", "-input=false")
+	return runInDir(ctx, path, "terraform", "plan", "-input=false")
 }
 
-func Apply(path string) error {
+func PlanOut(ctx context.Context, path string, outFile string) error {
+	outPath := outFile
+	if filepath.IsAbs(outFile) {
+		// outPath = filepath.Join(path, outFile)
+	} else {
+		outPath = outFile
+	}
+	fmt.Println("terraform plan -out", outPath)
+	return runInDir(ctx, path, "terraform", "plan", "-input=false", "-out", outPath)
+}
+
+func Apply(ctx context.Context, path string) error {
 	fmt.Println("terraform apply")
-	return runInDir(path, "terraform", "apply", "-auto-approve", "-input=false")
+	return runInDir(ctx, path, "terraform", "apply", "-auto-approve", "-input=false")
 }
 
-func Destroy(path string) error {
+func Validate(ctx context.Context, path string) error {
+	fmt.Println("terraform validate")
+	return runInDir(ctx, path, "terraform", "validate")
+}
+
+func Fmt(ctx context.Context, path string, check bool) error {
+	fmt.Println("terrafrom fmt")
+	args := []string{"fmt"}
+	if check {
+		args = append(args, "-check")
+	}
+	err := runInDir(ctx, path, "terraform", args...)
+
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			code := exitErr.ExitCode()
+			if code == 2 || code == 3 {
+				return fmt.Errorf("unformated files detected")
+			}
+		}
+		return err
+	}
+	return nil
+}
+
+func Destroy(ctx context.Context, path string) error {
 	fmt.Println("terraform destroy")
-	return runInDir(path, "terraform", "destroy", "-auto-approve", "-input=false")
+	return runInDir(ctx, path, "terraform", "destroy", "-auto-approve", "-input=false")
 }

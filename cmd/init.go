@@ -40,7 +40,7 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
-	initCmd.Flags().StringVar(&templateName, "template", "aws-basic", "template name in templates")
+	initCmd.Flags().StringVar(&templateName, "template", "aws-basic", "Template name (see `tfauto templates`)")
 	initCmd.Flags().StringVar(&targetDir, "target", "./tf-project", "Target directory to copy templates")
 	rootCmd.AddCommand(initCmd)
 }

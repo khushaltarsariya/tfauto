@@ -12,23 +12,36 @@ var applyPath string
 var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Run terraform apply in a path",
-	Run: func(cmd *cobra.Command, args []string) {
+
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if applyPath == "" {
+			applyPath = "."
+		}
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+
 		fmt.Println("Running terraform apply in ", applyPath)
 
-		if err := terraform.Init(applyPath); err != nil {
-			fmt.Println("terraform init failed", err)
-			return
+		if err := terraform.Init(ctx, applyPath); err != nil {
+			return fmt.Errorf("terraform init failed:%w", err)
+
 		}
 
-		if err := terraform.Apply(applyPath); err != nil {
-			fmt.Println("terraform apply failed", err)
-			return
+		if err := terraform.Apply(ctx, applyPath); err != nil {
+			return fmt.Errorf("terraform apply failed: %w", err)
+
 		}
+		return nil
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("apply finished ")
 	},
 }
 
 func init() {
-	applyCmd.Flags().StringVar(&applyPath, "path", "./tf-project", "Path to Terraform project")
+	applyCmd.Flags().StringVar(&applyPath, "path", ".t", "Path to Terraform project")
 	applyCmd.MarkFlagRequired("path")
 	rootCmd.AddCommand(applyCmd)
 }
