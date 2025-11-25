@@ -83,6 +83,7 @@ func Fmt(ctx context.Context, path string, check bool) error {
 	return nil
 }
 
+// destroy
 func Destroy(ctx context.Context, path string) error {
 	fmt.Println("terraform destroy")
 	return runInDir(ctx, path, "terraform", "destroy", "-auto-approve", "-input=false")
