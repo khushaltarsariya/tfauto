@@ -2,60 +2,94 @@ package cmd
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-var templatesCmd = &cobra.Command{
-	Use:   "templates",
-	Short: "List available for terraform template",
-	Long:  "Lists all available Terraform templates found in the local ./templates directory.",
+// templateCmd shows detailed information about a single template.
+// Usage: tfauto template <name>
+var templateCmd = &cobra.Command{
+	Use:   "template [name]",
+	Short: "Show detailed information about a Terraform template",
+	Long: `Show detailed information about a Terraform template.
+
+It reads DESCRIPTION.md from the template folder (if present) and
+lists all files included in the template.`,
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
 		root := "templates"
+		templateDir := filepath.Join(root, name)
 
-		entries, err := os.ReadDir(root)
-
+		info, err := os.Stat(templateDir)
 		if err != nil {
 			if os.IsNotExist(err) {
-				fmt.Println("No template directory found at", root)
-				fmt.Println("Create template in ./templates/<name> to use tfauto init.")
+				return fmt.Errorf("template %q not found in %s", name, root)
+			}
+			return fmt.Errorf("unable to stat template directory %q: %w", templateDir, err)
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("template %q is not a directory", templateDir)
+		}
+
+		fmt.Printf("Template: %s\n", name)
+		fmt.Printf("Path:     %s\n\n", templateDir)
+
+		// Read DESCRIPTION.md if it exists
+		descPath := filepath.Join(templateDir, "DESCRIPTION.md")
+		if data, err := os.ReadFile(descPath); err == nil {
+			fmt.Println("Description:")
+			fmt.Println(strings.TrimSpace(string(data)))
+			fmt.Println()
+		} else if os.IsNotExist(err) {
+			fmt.Println("Description:")
+			fmt.Println("(no DESCRIPTION.md found for this template)")
+			fmt.Println()
+		} else {
+			return fmt.Errorf("failed to read DESCRIPTION.md: %w", err)
+		}
+
+		// List files inside template directory
+		fmt.Println("Files in this template:")
+		err = filepath.WalkDir(templateDir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
 				return nil
 			}
-			return fmt.Errorf("failed to read templates directory %q: %w ", root, err)
-		}
 
-		var names []string
-		for _, e := range entries {
-			if e.IsDir() {
-				names = append(names, e.Name())
+			rel, err := filepath.Rel(templateDir, path)
+			if err != nil {
+				return err
 			}
-		}
 
-		if len(names) == 0 {
-			fmt.Println("No templates found in", root)
-			fmt.Println("Add templates under ./templates/<name> to use with --template.")
+			// Skip DESCRIPTION.md in the files list if you want
+			if rel == "DESCRIPTION.md" {
+				return nil
+			}
+
+			fmt.Printf("  - %s\n", rel)
 			return nil
-		}
-		sort.Strings(names)
-
-		fmt.Printf("Available templates:\n")
-
-		for _, name := range names {
-			fmt.Printf("  %-16s  (folder: %s)\n", name, filepath.Join(root, name))
+		})
+		if err != nil {
+			return fmt.Errorf("failed to walk template files: %w", err)
 		}
 
-		fmt.Println("\nUse:")
-		fmt.Println("  tfauto init --template <name> --target ./your-directory-name")
-		fmt.Println("or:")
-		// fmt.Println("  tfauto init --template <name> --in-place  # if you add in-place later")
+		fmt.Println()
+		fmt.Println("You can use this template with:")
+		fmt.Println("  tfauto init --template", name, "--target ./my-project")
+		fmt.Println("or (inside an empty directory):")
+		fmt.Println("  tfauto init --template", name, "--in-place")
 
 		return nil
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(templatesCmd)
+	rootCmd.AddCommand(templateCmd)
 }
