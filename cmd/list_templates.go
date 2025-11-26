@@ -42,7 +42,7 @@ var templatesCmd = &cobra.Command{
 
 		sort.Strings(names)
 
-		fmt.Println("Available templates:\n")
+		fmt.Printf("Available templates:\n")
 		for _, name := range names {
 			fmt.Printf("  %-16s (folder: %s)\n", name, filepath.Join(root, name))
 		}
