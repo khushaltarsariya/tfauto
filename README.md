@@ -31,7 +31,8 @@ Perfect for beginners, DevOps engineers, and anyone who wants a faster Terraform
 ### ✔ Zero dependencies (other than Terraform)
 tfauto only requires:
 - Go-compiled binary  
-- Terraform installed locally  
+- Terraform installed locally
+- Configure your aws acoount using the aws-cli
 
 ---
 
