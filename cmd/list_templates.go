@@ -49,7 +49,7 @@ var templatesCmd = &cobra.Command{
 
 		fmt.Println()
 		fmt.Println("Use:")
-		fmt.Println("  tfauto template <name>                # show details and description")
+		fmt.Println("  tfauto use_template <name>                # show details and description")
 		fmt.Println("  tfauto init --template <name> --target ./my-project")
 		fmt.Println("  tfauto init use_template <name> --target ./my-project")
 
