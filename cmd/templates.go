@@ -13,7 +13,7 @@ import (
 // templateCmd shows detailed information about a single template.
 // Usage: tfauto template <name>
 var templateCmd = &cobra.Command{
-	Use:   "template [name]",
+	Use:   "use_template [name]",
 	Short: "Show detailed information about a Terraform template",
 	Long: `Show detailed information about a Terraform template.
 
