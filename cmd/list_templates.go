@@ -10,7 +10,7 @@ import (
 )
 
 // templatesCmd lists all available templates
-var templatesCmd = &cobra.Command{
+var list_templatesCmd = &cobra.Command{
 	Use:   "list_templates ",
 	Short: "List available Terraform templates",
 	Long:  "Lists all available Terraform templates found in the ./templates directory.",
@@ -58,5 +58,5 @@ var templatesCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(templatesCmd)
+	rootCmd.AddCommand(list_templatesCmd)
 }

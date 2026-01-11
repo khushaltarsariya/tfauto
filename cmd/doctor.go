@@ -76,7 +76,7 @@ var doctorCmd = &cobra.Command{
 
 		if !found {
 			fmt.Println("FAILED")
-			return fmt.Errorf("no .tf file found in %s", destroyPath)
+			return fmt.Errorf("no .tf file found in %s", doctorPath)
 		}
 
 		fmt.Println("Environmnet looks good.you can run terrform safely")

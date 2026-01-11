@@ -12,7 +12,7 @@ import (
 
 // templateCmd shows detailed information about a single template.
 // Usage: tfauto template <name>
-var templateCmd = &cobra.Command{
+var use_templateCmd = &cobra.Command{
 	Use:   "use_template [name]",
 	Short: "Show detailed information about a Terraform template",
 	Long: `Show detailed information about a Terraform template.
@@ -91,5 +91,5 @@ lists all files included in the template.`,
 }
 
 func init() {
-	rootCmd.AddCommand(templateCmd)
+	rootCmd.AddCommand(use_templateCmd)
 }
