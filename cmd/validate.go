@@ -24,6 +24,10 @@ var validateCmd = &cobra.Command{
 		ctx := cmd.Context()
 		fmt.Println("run terraform validation command", validatePath)
 
+		if err := terraform.InitForValidation(ctx, validatePath); err != nil {
+			return fmt.Errorf("terraform init for validate: %w", err)
+		}
+
 		if err := terraform.Validate(ctx, validatePath); err != nil {
 			return fmt.Errorf("terraform validation: %w", err)
 		}

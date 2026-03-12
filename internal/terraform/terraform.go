@@ -37,6 +37,11 @@ func Init(ctx context.Context, path string) error {
 	return runInDir(ctx, path, "terraform", "init", "-input=false")
 }
 
+func InitForValidation(ctx context.Context, path string) error {
+	fmt.Println("terraform init (validation mode)")
+	return runInDir(ctx, path, "terraform", "init", "-backend=false", "-input=false")
+}
+
 func Plan(ctx context.Context, path string) error {
 	fmt.Println("terraform plan")
 	return runInDir(ctx, path, "terraform", "plan", "-input=false")
