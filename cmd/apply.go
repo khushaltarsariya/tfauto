@@ -41,7 +41,6 @@ var applyCmd = &cobra.Command{
 }
 
 func init() {
-	applyCmd.Flags().StringVar(&applyPath, "path", ".t", "Path to Terraform project")
-	applyCmd.MarkFlagRequired("path")
+	applyCmd.Flags().StringVar(&applyPath, "path", ".", "Path to Terraform project")
 	rootCmd.AddCommand(applyCmd)
 }

@@ -15,10 +15,9 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a terraform template into a directory",
 
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if templateName == "" {
-			fmt.Println("Please specify --template (e.g., aws-basic)")
-			return
+			return fmt.Errorf("please specify --template (for example: aws-basic)")
 		}
 
 		if targetDir == "" {
@@ -26,16 +25,15 @@ var initCmd = &cobra.Command{
 		}
 
 		if _, err := os.Stat(targetDir); err == nil {
-			fmt.Printf("Target directory %s allreday exists. Aborting ", targetDir)
-			return
+			return fmt.Errorf("target directory %s already exists", targetDir)
 		}
 
 		if err := generator.CopyTemplate(templateName, targetDir); err != nil {
-			fmt.Println("Error coping template", err)
-			return
+			return fmt.Errorf("copy template: %w", err)
 		}
 
-		fmt.Println("Template copy to", targetDir)
+		fmt.Println("Template copied to", targetDir)
+		return nil
 	},
 }
 

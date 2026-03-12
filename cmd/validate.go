@@ -13,7 +13,7 @@ var validateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "to validate the tf files",
 
-	PostRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if validatePath == "" {
 			validatePath = "."
 		}

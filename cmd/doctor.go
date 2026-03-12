@@ -38,7 +38,7 @@ var doctorCmd = &cobra.Command{
 
 		//check terraform version
 		fmt.Println("Checking terraform version")
-		out, err := exec.Command("terraform", "version").Output()
+		out, err := exec.CommandContext(cmd.Context(), "terraform", "version").Output()
 		if err != nil {
 			fmt.Println("FAILED")
 			return fmt.Errorf("failed to get terraform version")
@@ -66,11 +66,11 @@ var doctorCmd = &cobra.Command{
 
 			if filepath.Ext(path) == ".tf" {
 				found = true
-				return filepath.SkipDir
+				return fs.SkipAll
 			}
 			return nil
 		})
-		if err != nil {
+		if err != nil && err != fs.SkipAll {
 			return err
 		}
 

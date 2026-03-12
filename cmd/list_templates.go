@@ -11,7 +11,7 @@ import (
 
 // templatesCmd lists all available templates
 var list_templatesCmd = &cobra.Command{
-	Use:   "list_templates ",
+	Use:   "templates",
 	Short: "List available Terraform templates",
 	Long:  "Lists all available Terraform templates found in the ./templates directory.",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -49,9 +49,8 @@ var list_templatesCmd = &cobra.Command{
 
 		fmt.Println()
 		fmt.Println("Use:")
-		fmt.Println("  tfauto use_template <name>                # show details and description")
+		fmt.Println("  tfauto template <name>                    # show details and description")
 		fmt.Println("  tfauto init --template <name> --target ./my-project")
-		fmt.Println("  tfauto init use_template <name> --target ./my-project")
 
 		return nil
 	},
