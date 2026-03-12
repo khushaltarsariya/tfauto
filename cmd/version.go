@@ -6,13 +6,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "dev"
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Show terraform version",
+	Short: "Show tfauto version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("tfauto version", version)
+		fmt.Printf("tfauto version %s\n", version)
+		fmt.Printf("commit %s\n", commit)
+		fmt.Printf("built %s\n", date)
 	},
 }
 

@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            binary: tfauto
+            asset: tfauto-linux-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            binary: tfauto
+            asset: tfauto-darwin-amd64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            binary: tfauto.exe
+            asset: tfauto-windows-amd64.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build release binary
+        shell: bash
+        run: |
+          mkdir -p dist
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build \
+            -ldflags "-X tfauto/cmd.version=${GITHUB_REF_NAME} -X tfauto/cmd.commit=${GITHUB_SHA::7} -X tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -o dist/${{ matrix.binary }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.binary }}
+
+      - name: Publish GitHub release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.binary }}

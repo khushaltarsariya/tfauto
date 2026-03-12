@@ -1,345 +1,157 @@
 # tfauto
 
-> **Terraform workflow automation CLI — simplified, safe, and developer-friendly.**
+`tfauto` is a Terraform workflow automation CLI built with Go and Cobra.
+It does not replace Terraform. It adds guardrails, reusable templates, and a consistent command flow on top of Terraform CLI.
 
-tfauto is a command-line tool built on top of Terraform that standardizes infrastructure workflows, reduces operational mistakes, and provides reusable infrastructure templates. It does **not** replace Terraform — it makes working with Terraform easier and safer.
+## Why tfauto
 
----
+Terraform users often struggle more with workflow mistakes than with HCL itself:
+- running commands in the wrong directory
+- forgetting `terraform init`
+- repeating the same boilerplate project setup
+- unsafe `terraform destroy`
+- inconsistent structure across projects
 
-## Why tfauto?
+`tfauto` standardizes those workflows with a thin CLI layer and reusable templates.
 
-Working with Terraform is powerful, but painful for many developers:
+## Current capabilities
 
-- Forgetting the correct command sequence (`init` → `validate` → `plan` → `apply`)
-- Cryptic error messages with no clear fix
-- Accidental `terraform destroy` without confirmation
-- Repeating the same boilerplate infrastructure code across projects
-- Inconsistent project structures across teams
+- Wrap common Terraform commands: `plan`, `apply`, `destroy`, `validate`, `fmt`
+- Scaffold projects from built-in templates with `init`
+- List and inspect templates with `templates` and `template`
+- Run environment checks with `doctor`
+- Ship as a single compiled binary
 
-**tfauto solves all of this.**
-
----
-
-## Features
-
-- ✅ Standardized Terraform workflow commands
-- ✅ Reusable AWS infrastructure templates
-- ✅ Safe `destroy` with confirmation prompt
-- ✅ Environment diagnostics (`doctor` command)
-- ✅ Clean, beginner-friendly CLI experience
-- ✅ Single binary — no runtime dependencies
-
----
-
-## Installation
+## Install
 
 ### Build from source
 
-**Prerequisites:** Go 1.21+, Terraform CLI installed
+Prerequisites:
+- Go 1.22+
+- Terraform CLI installed and available in `PATH`
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/tfauto.git
+git clone https://github.com/your-username/tfauto.git
 cd tfauto
-
-# Build
-go build -ldflags "-X tfauto/cmd.version=v0.1.0" -o tfauto
-
-# Move to PATH (Linux/Mac)
-sudo mv tfauto /usr/local/bin/
-
-# Verify installation
-tfauto version
+go build -ldflags "-X tfauto/cmd.version=v0.1.0 -X tfauto/cmd.commit=$(git rev-parse --short HEAD) -X tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o tfauto
 ```
 
-**Windows:**
-```bash
-go build -ldflags "-X tfauto/cmd.version=v0.1.0" -o tfauto.exe
+Windows PowerShell:
+
+```powershell
+$commit = git rev-parse --short HEAD
+$date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+go build -ldflags "-X tfauto/cmd.version=v0.1.0 -X tfauto/cmd.commit=$commit -X tfauto/cmd.date=$date" -o tfauto.exe
 ```
 
----
-
-## Quick Start
+## Quick start
 
 ```bash
-# 1. Create a new Terraform project from a template
 tfauto init --template aws-basic --target ./my-project
-
-# 2. Validate the configuration
 tfauto validate --path ./my-project
-
-# 3. Format your Terraform files
 tfauto fmt --path ./my-project
-
-# 4. Preview infrastructure changes
 tfauto plan --path ./my-project
-
-# 5. Apply infrastructure
 tfauto apply --path ./my-project
 ```
-
----
 
 ## Commands
 
-### `tfauto init`
-Creates a new Terraform project from a template.
-
-```bash
-tfauto init --template aws-basic --target ./my-project
-```
-
-| Flag | Description |
-|------|-------------|
-| `--template` | Template name to use (required) |
-| `--target` | Directory to create the project in (required) |
-
----
-
-### `tfauto plan`
-Runs `terraform plan` in the specified project directory.
-
-```bash
-tfauto plan --path ./my-project
-```
-
----
-
-### `tfauto apply`
-Runs `terraform apply` in the specified project directory.
-
-```bash
-tfauto apply --path ./my-project
-```
-
----
-
-### `tfauto destroy`
-Destroys infrastructure with a required confirmation prompt. You will be asked to confirm before anything is deleted.
-
-```bash
-tfauto destroy --path ./my-project
-```
-
----
-
-### `tfauto validate`
-Runs `terraform validate` to check your configuration for errors.
-
-```bash
-tfauto validate --path ./my-project
-```
-
----
-
-### `tfauto fmt`
-Formats all Terraform files in the project directory.
-
-```bash
-# Format files
-tfauto fmt --path ./my-project
-
-# Check formatting without making changes
-tfauto fmt --path ./my-project --check
-```
-
----
-
-### `tfauto templates`
-Lists all available built-in templates.
+### Project scaffolding
 
 ```bash
 tfauto templates
+tfauto template aws-three-tier-vpc
+tfauto init --template aws-three-tier-vpc --target ./network
 ```
 
----
-
-### `tfauto template`
-Shows details about a specific template including its description and files.
+### Terraform workflow
 
 ```bash
-tfauto template aws-vpc
+tfauto validate --path ./network
+tfauto fmt --path ./network
+tfauto plan --path ./network
+tfauto apply --path ./network
+tfauto destroy --path ./network
 ```
 
----
-
-### `tfauto doctor`
-Runs environment diagnostics to check everything is set up correctly.
+### Diagnostics
 
 ```bash
-tfauto doctor
-```
-
-Checks:
-- Terraform is installed
-- Terraform version compatibility
-- AWS credentials are configured
-- Terraform files exist in the target path
-
----
-
-### `tfauto version`
-Displays the current tfauto version.
-
-```bash
+tfauto doctor --path ./network
 tfauto version
 ```
 
----
+## Built-in templates
 
-## Templates
+- `aws-basic`
+  Basic EC2 + networking starter
+- `aws-vpc`
+  Simple VPC starter across two public subnets
+- `aws-s3-static-site`
+  Public S3 static website starter
+- `aws-three-tier-vpc`
+  Three-tier VPC with public, app, and DB subnets, NAT, and DB subnet group
+- `aws-alb-asg-webapp`
+  ALB + Auto Scaling web app stack for an existing VPC
 
-tfauto comes with the following built-in AWS templates:
+Each template follows the same structure:
 
-### `aws-basic`
-Simple AWS EC2 infrastructure. Great starting point for learning Terraform.
+```text
+templates/<template-name>/
+|- DESCRIPTION.md
+|- main.tf
+|- outputs.tf
+|- provider.tf
+`- variables.tf
+```
+
+## Architecture
+
+```text
+User CLI
+  -> Cobra command layer (cmd/)
+  -> Business logic (internal/)
+  -> Terraform execution layer
+  -> Terraform CLI
+```
+
+Rules used in this project:
+- keep `cmd/` thin
+- keep business logic in `internal/`
+- return errors instead of panicking
+- use `context.Context` for command execution
+
+## Release process
+
+This repository includes GitHub Actions for CI and tagged releases.
+
+- `ci.yml` builds the CLI on every push and pull request
+- `release.yml` builds Linux, macOS, and Windows binaries when you push a tag like `v0.1.0`
+
+Example release tag:
 
 ```bash
-tfauto init --template aws-basic --target ./my-ec2-project
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
-**Creates:**
-- EC2 instance
-- Security group
-- Key pair configuration
+## Launch checklist
 
----
+Before a public launch:
+- set the GitHub repository URL in this README
+- verify all templates with real `terraform init` and `terraform validate`
+- create the first tagged release such as `v0.1.0`
+- add screenshots or terminal demos to the repository page
+- publish example usage in the README or docs
 
-### `aws-vpc`
-Production-ready VPC setup.
+## Near-term next steps
 
-```bash
-tfauto init --template aws-vpc --target ./my-vpc-project
-```
-
-**Creates:**
-- VPC
-- Public and private subnets
-- Internet gateway
-- Route tables
-
----
-
-### `aws-s3-static-site`
-S3-based static website hosting.
-
-```bash
-tfauto init --template aws-s3-static-site --target ./my-site
-```
-
-**Creates:**
-- S3 bucket
-- Public access configuration
-- Static website hosting settings
-
----
-
-Each template includes:
-
-```
-template-name/
-├── main.tf
-├── variables.tf
-├── outputs.tf
-├── provider.tf
-└── DESCRIPTION.md
-```
-
----
-
-## Prerequisites
-
-| Dependency | Required | Notes |
-|------------|----------|-------|
-| Go 1.21+ | Build only | For building from source |
-| Terraform CLI | ✅ Required | [Install Terraform](https://developer.hashicorp.com/terraform/install) |
-| AWS CLI + credentials | For AWS templates | [Configure AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) |
-
-Run `tfauto doctor` to verify your environment is ready.
-
----
-
-## Project Structure
-
-```
-tfauto/
-│
-├── main.go
-├── cmd/              # CLI command definitions
-│   ├── root.go
-│   ├── init.go
-│   ├── plan.go
-│   ├── apply.go
-│   ├── destroy.go
-│   ├── validate.go
-│   ├── fmt.go
-│   ├── templates.go
-│   ├── template.go
-│   ├── doctor.go
-│   └── version.go
-│
-├── internal/
-│   ├── terraform/    # Terraform execution logic
-│   └── generator/    # Template copying and scaffolding
-│
-├── templates/        # Built-in infrastructure templates
-│   ├── aws-basic/
-│   ├── aws-vpc/
-│   └── aws-s3-static-site/
-│
-├── go.mod
-└── README.md
-```
-
----
-
-## Roadmap
-
-- [x] Phase 1 — Core CLI workflow (current)
-- [ ] Phase 2 — Intelligent error translation and state safety
-- [ ] Phase 3 — Expanded multi-cloud templates (Azure, GCP)
-- [ ] Phase 4 — Team workflow enforcement (`.tfauto.yaml`, hooks, audit logging)
-- [ ] Phase 5 — AI-assisted plan explanation and security scanning
-
----
-
-## Contributing
-
-Contributions are welcome! Please open an issue first to discuss what you'd like to change.
-
-```bash
-# Fork and clone the repo
-git clone https://github.com/yourusername/tfauto.git
-
-# Create a feature branch
-git checkout -b feature/my-feature
-
-# Make your changes, then run tests
-go test ./...
-
-# Submit a pull request
-```
-
-Please keep these principles in mind:
-- No business logic in `cmd/` — only CLI interaction
-- All core logic lives in `internal/`
-- Always use `context.Context` for command execution
-- Return errors instead of panicking
-
----
+- add template validation tests or smoke checks
+- add Linux and macOS install instructions with release download examples
+- improve template descriptions and examples
+- add more production-focused templates such as `aws-rds-postgres` and `aws-ecs-fargate-service`
+- improve `doctor` with AWS identity and backend checks
 
 ## License
 
-MIT License — see [LICENSE](./LICENSE) for details.
-
----
-
-## Acknowledgements
-
-Built with:
-- [Cobra](https://github.com/spf13/cobra) — CLI framework
-- [Terraform](https://www.terraform.io/) — Infrastructure engine
-
----
-
-> **tfauto** is not affiliated with HashiCorp or Terraform. Terraform is a trademark of HashiCorp.
+MIT. See [LICENSE](LICENSE).
