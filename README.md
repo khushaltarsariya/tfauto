@@ -32,7 +32,7 @@ Prerequisites:
 - Terraform CLI installed and available in `PATH`
 
 ```bash
-git clone https://github.com/your-username/tfauto.git
+git clone https://github.com/khushaltarsariya/tfauto.git
 cd tfauto
 go build -ldflags "-X tfauto/cmd.version=v0.1.0 -X tfauto/cmd.commit=$(git rev-parse --short HEAD) -X tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o tfauto
 ```
@@ -166,6 +166,12 @@ Local:
 
 ```bash
 bash ./scripts/validate_templates.sh
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\validate_templates.ps1
 ```
 
 CI:

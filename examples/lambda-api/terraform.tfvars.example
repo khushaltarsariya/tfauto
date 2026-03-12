@@ -1,0 +1,6 @@
+name_prefix = "sample-api"
+route_key   = "GET /health"
+
+environment = {
+  APP_ENV = "dev"
+}

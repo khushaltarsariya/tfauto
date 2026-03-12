@@ -1,0 +1,13 @@
+name_prefix                = "app-db"
+db_name                    = "appdb"
+db_username                = "appuser"
+db_password                = "replace-me"
+instance_class             = "db.t4g.micro"
+backup_retention_period    = 7
+deletion_protection        = true
+skip_final_snapshot        = false
+
+# Fill these from the network stack outputs.
+vpc_id                     = "vpc-xxxxxxxx"
+db_subnet_ids              = ["subnet-aaaa", "subnet-bbbb"]
+allowed_security_group_ids = ["sg-application-tier"]

@@ -1,0 +1,11 @@
+name_prefix         = "webapp"
+instance_type       = "t3.micro"
+health_check_path   = "/"
+min_size            = 2
+desired_capacity    = 2
+max_size            = 4
+
+# Fill these from the network stack outputs.
+vpc_id              = "vpc-xxxxxxxx"
+alb_subnet_ids      = ["subnet-public-a", "subnet-public-b"]
+instance_subnet_ids = ["subnet-app-a", "subnet-app-b"]

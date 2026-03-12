@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -57,6 +58,10 @@ func Run(ctx context.Context, path string) Report {
 	report.Results = append(report.Results, checkTerraformVersion(ctx))
 	report.Results = append(report.Results, checkTerraformFiles(absPath))
 	report.Results = append(report.Results, checkTerraformInitialized(absPath))
+	report.Results = append(report.Results, checkBackendConfig(absPath))
+	report.Results = append(report.Results, checkWorkspace(absPath))
+	report.Results = append(report.Results, checkVariablePromptRisk(absPath))
+	report.Results = append(report.Results, checkAWSRegion(absPath))
 	report.Results = append(report.Results, checkAWSConfig(ctx, absPath))
 
 	return report
@@ -226,6 +231,177 @@ func checkTerraformInitialized(path string) Result {
 	}
 }
 
+func checkBackendConfig(path string) Result {
+	files, err := terraformFiles(path)
+	if err != nil {
+		return Result{
+			Name:    "Terraform backend configuration",
+			Status:  StatusWarn,
+			Details: []string{fmt.Sprintf("Unable to inspect backend configuration: %v", err)},
+		}
+	}
+
+	for _, file := range files {
+		content, readErr := os.ReadFile(file)
+		if readErr != nil {
+			continue
+		}
+		if strings.Contains(string(content), "backend \"") {
+			rel := relativeOrAbsolute(path, file)
+			return Result{
+				Name:   "Terraform backend configuration",
+				Status: StatusPass,
+				Details: []string{
+					fmt.Sprintf("Backend block detected in %s", rel),
+					"Ensure backend credentials and remote state access are configured",
+				},
+			}
+		}
+	}
+
+	return Result{
+		Name:   "Terraform backend configuration",
+		Status: StatusWarn,
+		Details: []string{
+			"No backend block detected",
+			"Terraform will use local state unless you configure a backend",
+		},
+	}
+}
+
+func checkWorkspace(path string) Result {
+	if workspace := os.Getenv("TF_WORKSPACE"); workspace != "" {
+		return Result{
+			Name:    "Terraform workspace",
+			Status:  StatusPass,
+			Details: []string{fmt.Sprintf("TF_WORKSPACE=%s", workspace)},
+		}
+	}
+
+	workspaceFile := filepath.Join(path, ".terraform", "environment")
+	if data, err := os.ReadFile(workspaceFile); err == nil {
+		workspace := strings.TrimSpace(string(data))
+		if workspace == "" {
+			workspace = "default"
+		}
+		return Result{
+			Name:    "Terraform workspace",
+			Status:  StatusPass,
+			Details: []string{fmt.Sprintf("Current workspace: %s", workspace)},
+		}
+	}
+
+	return Result{
+		Name:   "Terraform workspace",
+		Status: StatusWarn,
+		Details: []string{
+			"Workspace could not be determined",
+			"Default workspace is likely in use unless TF_WORKSPACE or .terraform/environment says otherwise",
+		},
+	}
+}
+
+func checkVariablePromptRisk(path string) Result {
+	requiredVariables, err := requiredVariablesWithoutDefaults(path)
+	if err != nil {
+		return Result{
+			Name:    "Variable prompt risk",
+			Status:  StatusWarn,
+			Details: []string{fmt.Sprintf("Unable to inspect variables: %v", err)},
+		}
+	}
+
+	tfvarsFiles := matchingFiles(path, func(name string) bool {
+		return name == "terraform.tfvars" ||
+			name == "terraform.tfvars.json" ||
+			strings.HasSuffix(name, ".auto.tfvars") ||
+			strings.HasSuffix(name, ".auto.tfvars.json")
+	})
+
+	if len(requiredVariables) == 0 {
+		return Result{
+			Name:    "Variable prompt risk",
+			Status:  StatusPass,
+			Details: []string{"No required variables without defaults detected"},
+		}
+	}
+
+	details := []string{
+		fmt.Sprintf("Required variables without defaults: %s", strings.Join(requiredVariables, ", ")),
+	}
+	if len(tfvarsFiles) == 0 {
+		details = append(details, "No terraform.tfvars or .auto.tfvars files detected")
+		return Result{
+			Name:    "Variable prompt risk",
+			Status:  StatusWarn,
+			Details: details,
+		}
+	}
+
+	relFiles := make([]string, 0, len(tfvarsFiles))
+	for _, file := range tfvarsFiles {
+		relFiles = append(relFiles, relativeOrAbsolute(path, file))
+	}
+	details = append(details, fmt.Sprintf("Variable files detected: %s", strings.Join(relFiles, ", ")))
+
+	return Result{
+		Name:    "Variable prompt risk",
+		Status:  StatusWarn,
+		Details: details,
+	}
+}
+
+func checkAWSRegion(path string) Result {
+	if region := os.Getenv("AWS_REGION"); region != "" {
+		return Result{
+			Name:    "AWS region resolution",
+			Status:  StatusPass,
+			Details: []string{fmt.Sprintf("Using AWS_REGION=%s", region)},
+		}
+	}
+	if region := os.Getenv("AWS_DEFAULT_REGION"); region != "" {
+		return Result{
+			Name:    "AWS region resolution",
+			Status:  StatusPass,
+			Details: []string{fmt.Sprintf("Using AWS_DEFAULT_REGION=%s", region)},
+		}
+	}
+
+	files, err := terraformFiles(path)
+	if err != nil {
+		return Result{
+			Name:    "AWS region resolution",
+			Status:  StatusWarn,
+			Details: []string{fmt.Sprintf("Unable to inspect provider configuration: %v", err)},
+		}
+	}
+
+	for _, file := range files {
+		content, readErr := os.ReadFile(file)
+		if readErr != nil {
+			continue
+		}
+		if strings.Contains(string(content), "provider \"aws\"") && strings.Contains(string(content), "region") {
+			return Result{
+				Name:   "AWS region resolution",
+				Status: StatusPass,
+				Details: []string{
+					fmt.Sprintf("AWS region appears to be configured in %s", relativeOrAbsolute(path, file)),
+				},
+			}
+		}
+	}
+
+	return Result{
+		Name:   "AWS region resolution",
+		Status: StatusWarn,
+		Details: []string{
+			"No AWS region detected in environment or provider configuration",
+			"Set AWS_REGION or configure region in the provider block",
+		},
+	}
+}
+
 func checkAWSConfig(ctx context.Context, path string) Result {
 	awsPath, err := exec.LookPath("aws")
 	if err != nil {
@@ -315,6 +491,96 @@ func awsEnvironmentDetails(path string) []string {
 	}
 
 	return details
+}
+
+func terraformFiles(path string) ([]string, error) {
+	var files []string
+
+	err := filepath.WalkDir(path, func(current string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if d.Name() == ".terraform" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(current) == ".tf" {
+			files = append(files, current)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func matchingFiles(path string, match func(name string) bool) []string {
+	var files []string
+
+	_ = filepath.WalkDir(path, func(current string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			if d.Name() == ".terraform" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if match(filepath.Base(current)) {
+			files = append(files, current)
+		}
+		return nil
+	})
+
+	return files
+}
+
+func requiredVariablesWithoutDefaults(path string) ([]string, error) {
+	files, err := terraformFiles(path)
+	if err != nil {
+		return nil, err
+	}
+
+	blockPattern := regexp.MustCompile(`(?s)variable\s+"([^"]+)"\s*\{(.*?)\}`)
+	defaultPattern := regexp.MustCompile(`(?m)^\s*default\s*=`)
+	seen := map[string]struct{}{}
+	var required []string
+
+	for _, file := range files {
+		content, readErr := os.ReadFile(file)
+		if readErr != nil {
+			continue
+		}
+
+		matches := blockPattern.FindAllStringSubmatch(string(content), -1)
+		for _, match := range matches {
+			name := match[1]
+			body := match[2]
+			if defaultPattern.MatchString(body) {
+				continue
+			}
+			if _, exists := seen[name]; exists {
+				continue
+			}
+			seen[name] = struct{}{}
+			required = append(required, name)
+		}
+	}
+
+	return required, nil
+}
+
+func relativeOrAbsolute(base string, path string) string {
+	rel, err := filepath.Rel(base, path)
+	if err != nil {
+		return path
+	}
+	return rel
 }
 
 func fileExists(path string) bool {

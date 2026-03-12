@@ -20,6 +20,9 @@ Checks include:
 - Terraform installation and version
 - presence of Terraform files
 - project initialization state
+- backend and workspace hints
+- variable prompt risk detection
+- AWS region resolution
 - AWS CLI and caller identity when available`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report := doctor.Run(cmd.Context(), doctorPath)
