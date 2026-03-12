@@ -19,9 +19,11 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "tfauto",
-	Short: "Terraform workflow automation CLI",
-	Long:  "tfauto simplifies Terraform workflows with safer commands, reusable templates, and consistent project setup.",
+	Use:           "tfauto",
+	Short:         "Terraform workflow automation CLI",
+	Long:          "tfauto simplifies Terraform workflows with safer commands, reusable templates, and consistent project setup.",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		startedAt = time.Now()

@@ -8,9 +8,13 @@ import (
 	"path/filepath"
 )
 
-func runInDir(ctx context.Context, dir string, name string, args ...string) error {
+type PlanResult struct {
+	HasChanges bool
+}
+
+func runInDirWithExitCode(ctx context.Context, dir string, name string, args ...string) (int, error) {
 	if _, err := exec.LookPath(name); err != nil {
-		return fmt.Errorf("%s not found in PATH %w", name, err)
+		return 0, fmt.Errorf("%s not found in PATH %w", name, err)
 	}
 
 	if dir == "" {
@@ -18,7 +22,7 @@ func runInDir(ctx context.Context, dir string, name string, args ...string) erro
 	}
 
 	if _, err := os.Stat(dir); err != nil {
-		return fmt.Errorf("path %s does not exist %w ", dir, err)
+		return 0, fmt.Errorf("path %s does not exist %w ", dir, err)
 	}
 
 	cmd := exec.CommandContext(ctx, name, args...)
@@ -26,7 +30,21 @@ func runInDir(ctx context.Context, dir string, name string, args ...string) erro
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	return cmd.Run()
+	err := cmd.Run()
+	if err == nil {
+		return 0, nil
+	}
+
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		return exitErr.ExitCode(), err
+	}
+
+	return 0, err
+}
+
+func runInDir(ctx context.Context, dir string, name string, args ...string) error {
+	_, err := runInDirWithExitCode(ctx, dir, name, args...)
+	return err
 }
 
 func Init(ctx context.Context, path string) error {
@@ -39,12 +57,25 @@ func InitForValidation(ctx context.Context, path string) error {
 	return runInDir(ctx, path, "terraform", "init", "-backend=false", "-input=false")
 }
 
-func Plan(ctx context.Context, path string) error {
+func Plan(ctx context.Context, path string, detailedExitCode bool) (PlanResult, error) {
 	fmt.Println("terraform plan")
-	return runInDir(ctx, path, "terraform", "plan", "-input=false")
+	args := []string{"plan", "-input=false"}
+	if detailedExitCode {
+		args = append(args, "-detailed-exitcode")
+	}
+
+	code, err := runInDirWithExitCode(ctx, path, "terraform", args...)
+	if err != nil {
+		if detailedExitCode && code == 2 {
+			return PlanResult{HasChanges: true}, nil
+		}
+		return PlanResult{}, err
+	}
+
+	return PlanResult{}, nil
 }
 
-func PlanOut(ctx context.Context, path string, outFile string) error {
+func PlanOut(ctx context.Context, path string, outFile string, detailedExitCode bool) (PlanResult, error) {
 	outPath := outFile
 	if filepath.IsAbs(outFile) {
 		// outPath = filepath.Join(path, outFile)
@@ -52,7 +83,20 @@ func PlanOut(ctx context.Context, path string, outFile string) error {
 		outPath = outFile
 	}
 	fmt.Println("terraform plan -out", outPath)
-	return runInDir(ctx, path, "terraform", "plan", "-input=false", "-out", outPath)
+	args := []string{"plan", "-input=false", "-out", outPath}
+	if detailedExitCode {
+		args = append(args, "-detailed-exitcode")
+	}
+
+	code, err := runInDirWithExitCode(ctx, path, "terraform", args...)
+	if err != nil {
+		if detailedExitCode && code == 2 {
+			return PlanResult{HasChanges: true}, nil
+		}
+		return PlanResult{}, err
+	}
+
+	return PlanResult{}, nil
 }
 
 func Apply(ctx context.Context, path string) error {

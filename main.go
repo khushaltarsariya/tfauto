@@ -9,7 +9,13 @@ import (
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		exitCode := 1
+		if exitCoder, ok := err.(interface{ ExitCode() int }); ok {
+			exitCode = exitCoder.ExitCode()
+		}
+		if err.Error() != "" {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		os.Exit(exitCode)
 	}
 }
