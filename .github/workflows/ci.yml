@@ -27,6 +27,9 @@ jobs:
       - name: Verify formatting
         run: terraform fmt -check -recursive templates
 
+      - name: Smoke test templates
+        run: bash ./scripts/validate_templates.sh
+
       - name: Build
         run: go build ./...
 
