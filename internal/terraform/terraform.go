@@ -104,6 +104,11 @@ func Apply(ctx context.Context, path string) error {
 	return runInDir(ctx, path, "terraform", "apply", "-auto-approve", "-input=false")
 }
 
+func ApplyPlan(ctx context.Context, path string, planFile string) error {
+	fmt.Println("terraform apply saved plan", planFile)
+	return runInDir(ctx, path, "terraform", "apply", "-input=false", planFile)
+}
+
 func Validate(ctx context.Context, path string) error {
 	fmt.Println("terraform validate")
 	return runInDir(ctx, path, "terraform", "validate")
