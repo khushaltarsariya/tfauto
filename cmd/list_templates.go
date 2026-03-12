@@ -9,11 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// templatesCmd lists all available templates
 var list_templatesCmd = &cobra.Command{
 	Use:   "templates",
 	Short: "List available Terraform templates",
-	Long:  "Lists all available Terraform templates found in the ./templates directory.",
+	Long:  "List all available Terraform templates found in the ./templates directory.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		root := "templates"
 

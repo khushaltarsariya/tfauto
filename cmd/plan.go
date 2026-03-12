@@ -13,7 +13,7 @@ var planOut string
 
 var planCmd = &cobra.Command{
 	Use:   "plan",
-	Short: "Run terraform plan in a path",
+	Short: "Run terraform plan in a project directory",
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if pathFlag == "" {
@@ -23,10 +23,10 @@ var planCmd = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		fmt.Println("Run terraform plan in ", pathFlag)
+		fmt.Println("Running terraform plan in", pathFlag)
 
 		if err := terraform.Init(ctx, pathFlag); err != nil {
-			return fmt.Errorf("terraform init failed:%w", err)
+			return fmt.Errorf("terraform init failed: %w", err)
 
 		}
 
@@ -50,7 +50,7 @@ var planCmd = &cobra.Command{
 }
 
 func init() {
-	planCmd.Flags().StringVar(&pathFlag, "path", ".", "Path to terraform project")
-	planCmd.Flags().StringVar(&planOut, "out", "", "write plan to file")
+	planCmd.Flags().StringVar(&pathFlag, "path", ".", "Path to Terraform project")
+	planCmd.Flags().StringVar(&planOut, "out", "", "Write the plan to a file")
 	rootCmd.AddCommand(planCmd)
 }

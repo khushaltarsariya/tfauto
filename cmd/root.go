@@ -20,13 +20,13 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "tfauto",
-	Short: "Terraform automation cli",
-	Long:  "tfauto simplifies Terraform workflows: init, plan, apply, destroy, and update variables.",
+	Short: "Terraform workflow automation CLI",
+	Long:  "tfauto simplifies Terraform workflows with safer commands, reusable templates, and consistent project setup.",
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		startedAt = time.Now()
 
-		//handle --chdir
+		// Handle --chdir before running any command.
 
 		if globalChdir != "" {
 			if err := os.Chdir(globalChdir); err != nil {

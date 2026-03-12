@@ -11,7 +11,7 @@ var validatePath string
 
 var validateCmd = &cobra.Command{
 	Use:   "validate",
-	Short: "to validate the tf files",
+	Short: "Validate Terraform configuration in a project directory",
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if validatePath == "" {
@@ -22,7 +22,7 @@ var validateCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		fmt.Println("run terraform validation command", validatePath)
+		fmt.Println("Running terraform validate in", validatePath)
 
 		if err := terraform.InitForValidation(ctx, validatePath); err != nil {
 			return fmt.Errorf("terraform init for validate: %w", err)
@@ -38,6 +38,6 @@ var validateCmd = &cobra.Command{
 }
 
 func init() {
-	validateCmd.Flags().StringVar(&validatePath, "path", ".", "path to terraform project")
+	validateCmd.Flags().StringVar(&validatePath, "path", ".", "Path to Terraform project")
 	rootCmd.AddCommand(validateCmd)
 }

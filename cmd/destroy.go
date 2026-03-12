@@ -15,7 +15,7 @@ var destroyYes bool
 
 var destroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "Run terraform destroy in a path(required confirmation)",
+	Short: "Run terraform destroy with confirmation",
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if destroyPath == "" {
@@ -25,16 +25,14 @@ var destroyCmd = &cobra.Command{
 			return nil
 		}
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Are you sure you want to destroy resource in %s? Type yes to confirm:", destroyPath)
+		fmt.Printf("Are you sure you want to destroy resources in %s? Type yes to confirm: ", destroyPath)
 		text, _ := reader.ReadString('\n')
 
 		if strings.TrimSpace(text) != "yes" {
-			return fmt.Errorf("Aborted")
-
+			return fmt.Errorf("aborted")
 		}
 
 		return nil
-
 	},
 
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -59,7 +57,7 @@ var destroyCmd = &cobra.Command{
 }
 
 func init() {
-	destroyCmd.Flags().StringVar(&destroyPath, "path", "./tf-project", "Path to Terraform project")
+	destroyCmd.Flags().StringVar(&destroyPath, "path", ".", "Path to Terraform project")
 	destroyCmd.Flags().BoolVar(&destroyYes, "yes", false, "Skip interactive confirmation (non-interactive)")
 	rootCmd.AddCommand(destroyCmd)
 }

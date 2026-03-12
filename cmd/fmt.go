@@ -12,7 +12,7 @@ var fmtCheck bool
 
 var fmtCmd = &cobra.Command{
 	Use:   "fmt",
-	Short: "terraform formate command {fmt}",
+	Short: "Format Terraform files in a project directory",
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if fmtPath == "" {
@@ -23,23 +23,23 @@ var fmtCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		fmt.Println("terraform formate check", fmtPath, fmtCheck)
+		fmt.Println("Running terraform fmt in", fmtPath)
 
 		if err := terraform.Fmt(ctx, fmtPath, fmtCheck); err != nil {
 			return fmt.Errorf("terraform fmt: %w", err)
 		}
 		if fmtCheck {
-			fmt.Println("fmt:check complete")
+			fmt.Println("fmt check completed")
 		} else {
-			fmt.Println("fmt:formatted succesfully")
+			fmt.Println("Terraform files formatted successfully")
 		}
 		return nil
 	},
 }
 
 func init() {
-	fmtCmd.Flags().StringVar(&fmtPath, "path", ".", "path to terraform project")
-	fmtCmd.Flags().BoolVar(&fmtCheck, "check", false, "check if files are formated")
+	fmtCmd.Flags().StringVar(&fmtPath, "path", ".", "Path to Terraform project")
+	fmtCmd.Flags().BoolVar(&fmtCheck, "check", false, "Check whether files are already formatted")
 	rootCmd.AddCommand(fmtCmd)
 
 }

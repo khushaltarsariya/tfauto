@@ -9,13 +9,10 @@ import (
 )
 
 func runInDir(ctx context.Context, dir string, name string, args ...string) error {
-	//ensuring binary exist
-
 	if _, err := exec.LookPath(name); err != nil {
 		return fmt.Errorf("%s not found in PATH %w", name, err)
 	}
 
-	//option:validate dir exist
 	if dir == "" {
 		dir = "."
 	}
@@ -69,7 +66,7 @@ func Validate(ctx context.Context, path string) error {
 }
 
 func Fmt(ctx context.Context, path string, check bool) error {
-	fmt.Println("terrafrom fmt")
+	fmt.Println("terraform fmt")
 	args := []string{"fmt"}
 	if check {
 		args = append(args, "-check")
@@ -80,7 +77,7 @@ func Fmt(ctx context.Context, path string, check bool) error {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			code := exitErr.ExitCode()
 			if code == 2 || code == 3 {
-				return fmt.Errorf("unformated files detected")
+				return fmt.Errorf("unformatted files detected")
 			}
 		}
 		return err
@@ -88,7 +85,6 @@ func Fmt(ctx context.Context, path string, check bool) error {
 	return nil
 }
 
-// destroy
 func Destroy(ctx context.Context, path string) error {
 	fmt.Println("terraform destroy")
 	return runInDir(ctx, path, "terraform", "destroy", "-auto-approve", "-input=false")

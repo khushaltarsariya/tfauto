@@ -13,7 +13,7 @@ var targetDir string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize a terraform template into a directory",
+	Short: "Create a Terraform project from a built-in template",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if templateName == "" {
