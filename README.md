@@ -20,6 +20,7 @@ Terraform users often struggle more with workflow mistakes than with HCL itself:
 - Scaffold projects from built-in templates with `init`
 - List and inspect templates with `templates` and `template`
 - Run environment checks with `doctor`
+- Support safer non-interactive flows for `plan`, `apply`, and `destroy`
 - Ship as a single compiled binary
 
 ## Install
@@ -51,27 +52,55 @@ tfauto init --template aws-basic --target ./my-project
 tfauto validate --path ./my-project
 tfauto fmt --path ./my-project
 tfauto plan --path ./my-project
-tfauto apply --path ./my-project
+tfauto apply --path ./my-project --yes
 ```
 
-## Commands
+## Core workflows
 
-### Project scaffolding
+### Template-based project bootstrapping
 
 ```bash
 tfauto templates
 tfauto template aws-three-tier-vpc
 tfauto init --template aws-three-tier-vpc --target ./network
+tfauto validate --path ./network
+tfauto fmt --path ./network
 ```
 
-### Terraform workflow
+### Plan -> apply saved plan
+
+This is the recommended flow for repeatable infrastructure changes:
+
+```bash
+tfauto plan --path ./network --out tfplan
+tfauto apply --path ./network --plan tfplan
+```
+
+If you want Terraform-style change detection for scripts or CI:
+
+```bash
+tfauto plan --path ./network --out tfplan --detailed-exitcode
+```
+
+Exit codes:
+- `0` = no changes
+- `2` = changes detected
+- `1` = error
+
+### Safe CI usage
+
+Use a saved plan file and require it explicitly during apply:
 
 ```bash
 tfauto validate --path ./network
-tfauto fmt --path ./network
-tfauto plan --path ./network
-tfauto apply --path ./network
-tfauto destroy --path ./network
+tfauto plan --path ./network --out tfplan --detailed-exitcode
+tfauto apply --path ./network --require-plan --plan tfplan
+```
+
+Destroy is intentionally explicit in non-interactive environments:
+
+```bash
+tfauto destroy --path ./network --yes
 ```
 
 ### Diagnostics
@@ -93,6 +122,14 @@ tfauto version
   Three-tier VPC with public, app, and DB subnets, NAT, and DB subnet group
 - `aws-alb-asg-webapp`
   ALB + Auto Scaling web app stack for an existing VPC
+- `aws-rds-postgres`
+  PostgreSQL database starter for private subnets in an existing VPC
+- `aws-ecs-fargate-service`
+  ECS Fargate web service with ALB, logs, and autoscaling-ready baseline
+- `aws-lambda-apigateway`
+  Lambda function exposed through API Gateway HTTP API
+- `aws-cloudfront-s3-static-site`
+  Private S3 + CloudFront static site starter with OAC
 
 Each template follows the same structure:
 
@@ -121,10 +158,17 @@ Rules used in this project:
 - return errors instead of panicking
 - use `context.Context` for command execution
 
-## Release process
+## Validation and CI
 
-This repository includes GitHub Actions for CI and tagged releases.
+This repository includes both local and CI template smoke checks.
 
+Local:
+
+```bash
+bash ./scripts/validate_templates.sh
+```
+
+CI:
 - `ci.yml` builds the CLI on every push and pull request
 - `release.yml` builds Linux, macOS, and Windows binaries when you push a tag like `v0.1.0`
 
@@ -146,11 +190,11 @@ Before a public launch:
 
 ## Near-term next steps
 
-- add template validation tests or smoke checks
+- add tests for `internal/terraform`
 - add Linux and macOS install instructions with release download examples
-- improve template descriptions and examples
-- add more production-focused templates such as `aws-rds-postgres` and `aws-ecs-fargate-service`
-- improve `doctor` with AWS identity and backend checks
+- add example projects that combine multiple templates
+- improve `doctor` with backend and workspace checks
+- add more advanced team workflow features
 
 ## License
 
