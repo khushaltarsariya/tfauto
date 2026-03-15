@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build-release:
     runs-on: ${{ matrix.os }}
@@ -14,18 +17,15 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
-            binary: tfauto
-            asset: tfauto-linux-amd64
+            asset: tfauto-${{ github.ref_name }}-linux-amd64
           - os: macos-latest
             goos: darwin
             goarch: amd64
-            binary: tfauto
-            asset: tfauto-darwin-amd64
+            asset: tfauto-${{ github.ref_name }}-darwin-amd64
           - os: windows-latest
             goos: windows
             goarch: amd64
-            binary: tfauto.exe
-            asset: tfauto-windows-amd64.exe
+            asset: tfauto-${{ github.ref_name }}-windows-amd64.exe
 
     steps:
       - name: Checkout
@@ -42,15 +42,31 @@ jobs:
           mkdir -p dist
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build \
             -ldflags "-X tfauto/cmd.version=${GITHUB_REF_NAME} -X tfauto/cmd.commit=${GITHUB_SHA::7} -X tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            -o dist/${{ matrix.binary }}
+            -o dist/${{ matrix.asset }}
 
-      - name: Upload build artifact
+      - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset }}
-          path: dist/${{ matrix.binary }}
+          path: dist/${{ matrix.asset }}
 
-      - name: Publish GitHub release asset
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: build-release
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten artifact directories
+        shell: bash
+        run: |
+          find dist -type f -exec mv {} dist/ \;
+          find dist -mindepth 1 -type d -empty -delete
+
+      - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/${{ matrix.binary }}
+          files: dist/*
