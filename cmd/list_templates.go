@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"sort"
+	tplfs "tfauto/templates"
 
 	"github.com/spf13/cobra"
 )
@@ -12,38 +10,16 @@ import (
 var list_templatesCmd = &cobra.Command{
 	Use:   "templates",
 	Short: "List available Terraform templates",
-	Long:  "List all available Terraform templates found in the ./templates directory.",
+	Long:  "List all available built-in Terraform templates embedded in the tfauto binary.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		root := "templates"
-
-		entries, err := os.ReadDir(root)
+		names, err := tplfs.List()
 		if err != nil {
-			if os.IsNotExist(err) {
-				fmt.Println("No templates directory found at", root)
-				fmt.Println("Create templates in ./templates/<name> to use tfauto init.")
-				return nil
-			}
-			return fmt.Errorf("failed to read templates directory %q: %w", root, err)
+			return fmt.Errorf("list templates: %w", err)
 		}
-
-		var names []string
-		for _, e := range entries {
-			if e.IsDir() {
-				names = append(names, e.Name())
-			}
-		}
-
-		if len(names) == 0 {
-			fmt.Println("No templates found in", root)
-			fmt.Println("Add templates under ./templates/<name> to use with --template.")
-			return nil
-		}
-
-		sort.Strings(names)
 
 		fmt.Printf("Available templates:\n")
 		for _, name := range names {
-			fmt.Printf("  %-16s (folder: %s)\n", name, filepath.Join(root, name))
+			fmt.Printf("  %s\n", name)
 		}
 
 		fmt.Println()

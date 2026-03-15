@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
 	"strings"
+	tplfs "tfauto/templates"
 
 	"github.com/spf13/cobra"
 )
@@ -22,62 +20,32 @@ lists all files included in the template.`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
-		root := "templates"
-		templateDir := filepath.Join(root, name)
-
-		info, err := os.Stat(templateDir)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("template %q not found in %s", name, root)
-			}
-			return fmt.Errorf("unable to stat template directory %q: %w", templateDir, err)
-		}
-		if !info.IsDir() {
-			return fmt.Errorf("template %q is not a directory", templateDir)
+		if !tplfs.Exists(name) {
+			return fmt.Errorf("template %q not found", name)
 		}
 
 		fmt.Printf("Template: %s\n", name)
-		fmt.Printf("Path:     %s\n\n", templateDir)
+		fmt.Printf("Source:   embedded in tfauto binary\n\n")
 
-		// Read DESCRIPTION.md if it exists
-		descPath := filepath.Join(templateDir, "DESCRIPTION.md")
-		if data, err := os.ReadFile(descPath); err == nil {
+		if description, err := tplfs.Description(name); err == nil && description != "" {
 			fmt.Println("Description:")
-			fmt.Println(strings.TrimSpace(string(data)))
+			fmt.Println(strings.TrimSpace(description))
 			fmt.Println()
-		} else if os.IsNotExist(err) {
+		} else if err == nil {
 			fmt.Println("Description:")
 			fmt.Println("(no DESCRIPTION.md found for this template)")
 			fmt.Println()
 		} else {
-			return fmt.Errorf("failed to read DESCRIPTION.md: %w", err)
+			return fmt.Errorf("read template description: %w", err)
 		}
 
-		// List files inside template directory
 		fmt.Println("Files in this template:")
-		err = filepath.WalkDir(templateDir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if d.IsDir() {
-				return nil
-			}
-
-			rel, err := filepath.Rel(templateDir, path)
-			if err != nil {
-				return err
-			}
-
-			// Skip DESCRIPTION.md in the files list if you want
-			if rel == "DESCRIPTION.md" {
-				return nil
-			}
-
-			fmt.Printf("  - %s\n", rel)
-			return nil
-		})
+		files, err := tplfs.Files(name)
 		if err != nil {
-			return fmt.Errorf("failed to walk template files: %w", err)
+			return fmt.Errorf("list template files: %w", err)
+		}
+		for _, file := range files {
+			fmt.Printf("  - %s\n", file)
 		}
 
 		fmt.Println()

@@ -19,6 +19,7 @@ Terraform users often struggle more with workflow mistakes than with HCL itself:
 - Wrap common Terraform commands: `plan`, `apply`, `destroy`, `validate`, `fmt`
 - Scaffold projects from built-in templates with `init`
 - List and inspect templates with `templates` and `template`
+- Embed built-in templates directly into the binary
 - Run environment checks with `doctor`
 - Support safer non-interactive flows for `plan`, `apply`, and `destroy`
 - Ship as a single compiled binary
