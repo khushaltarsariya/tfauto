@@ -81,7 +81,7 @@ func requiresTerraform(cmd *cobra.Command) bool {
 
 	for current := cmd; current != nil; current = current.Parent() {
 		switch current.Name() {
-		case "init", "templates", "template", "version", "doctor", "completion", "help":
+		case "init", "templates", "template", "version", "doctor", "config", "completion", "help":
 			return false
 		}
 	}

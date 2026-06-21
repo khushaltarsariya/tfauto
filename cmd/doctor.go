@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"tfauto/internal/config"
 	"tfauto/internal/doctor"
 
 	"github.com/spf13/cobra"
@@ -26,6 +27,7 @@ Checks include:
 - AWS CLI and caller identity when available`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report := doctor.Run(cmd.Context(), doctorPath)
+		configResult, configErr := config.LoadForPath(doctorPath)
 
 		fmt.Println("tfauto doctor")
 		fmt.Println()
@@ -38,6 +40,28 @@ Checks include:
 			fmt.Println()
 		}
 
+		if configErr != nil {
+			fmt.Println("[FAIL] tfauto config")
+			fmt.Printf("  - %s\n\n", configErr)
+		} else if configResult.Found {
+			fmt.Println("[PASS] tfauto config")
+			fmt.Printf("  - Found %s\n", configResult.Path)
+			fmt.Printf("  - require_plan_file: %t\n", configResult.Config.Terraform.RequirePlanFile)
+			fmt.Printf("  - protect_destroy: %t\n", configResult.Config.Terraform.ProtectDestroy)
+			if len(configResult.Config.Policy.RequireTags) > 0 {
+				fmt.Printf("  - required tags: %v\n", configResult.Config.Policy.RequireTags)
+			}
+			fmt.Println()
+		} else {
+			fmt.Println("[WARN] tfauto config")
+			fmt.Println("  - No .tfauto.yaml found")
+			fmt.Println("  - Command defaults will be used")
+			fmt.Println()
+		}
+
+		if configErr != nil {
+			return fmt.Errorf("doctor found one or more blocking issues")
+		}
 		if report.HasFailures() {
 			return fmt.Errorf("doctor found one or more blocking issues")
 		}

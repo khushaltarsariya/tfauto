@@ -111,6 +111,45 @@ tfauto doctor --path ./network
 tfauto version
 ```
 
+### Project guardrails with `.tfauto.yaml`
+
+Create a `.tfauto.yaml` file in a project or parent directory to define local workflow rules:
+
+```yaml
+project: my-app
+environment: dev
+
+terraform:
+  require_plan_file: true
+  protect_destroy: true
+
+templates:
+  allowed:
+    - aws-three-tier-vpc
+    - aws-rds-postgres
+
+policy:
+  require_tags:
+    - Owner
+    - Environment
+    - CostCenter
+```
+
+Check the active config:
+
+```bash
+tfauto config check --path ./network
+```
+
+When `require_plan_file` is enabled, `apply` must use a saved plan:
+
+```bash
+tfauto plan --path ./network --out tfplan
+tfauto apply --path ./network --plan tfplan
+```
+
+When `protect_destroy` is enabled, destroy remains blocked unless the user explicitly passes `--yes`.
+
 ## Built-in templates
 
 - `aws-basic`

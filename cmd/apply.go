@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"tfauto/internal/config"
 	"tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
@@ -22,12 +24,22 @@ var applyCmd = &cobra.Command{
 			applyPath = "."
 		}
 
+		configResult, err := config.LoadForPath(applyPath)
+		if err != nil {
+			return err
+		}
+		if configResult.Found && configResult.Config.Terraform.RequirePlanFile {
+			applyRequirePlan = true
+			fmt.Println("Project policy requires applying a saved plan file:", configResult.Path)
+		}
+
 		if applyRequirePlan && applyPlanFile == "" {
-			return fmt.Errorf("--require-plan requires --plan")
+			return fmt.Errorf("apply requires --plan because --require-plan or project policy is enabled")
 		}
 
 		if applyPlanFile != "" {
-			if _, err := os.Stat(applyPlanFile); err != nil {
+			planPath := resolvePathFromProject(applyPath, applyPlanFile)
+			if _, err := os.Stat(planPath); err != nil {
 				return fmt.Errorf("plan file %q does not exist", applyPlanFile)
 			}
 		}
@@ -70,4 +82,11 @@ func init() {
 	applyCmd.Flags().BoolVar(&applyYes, "yes", false, "Confirm non-interactive apply when no saved plan file is provided")
 	applyCmd.Flags().BoolVar(&applyRequirePlan, "require-plan", false, "Require --plan for safer CI usage")
 	rootCmd.AddCommand(applyCmd)
+}
+
+func resolvePathFromProject(projectPath string, value string) string {
+	if filepath.IsAbs(value) {
+		return value
+	}
+	return filepath.Join(projectPath, value)
 }

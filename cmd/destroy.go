@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"tfauto/internal/config"
 	"tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
@@ -20,6 +21,13 @@ var destroyCmd = &cobra.Command{
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if destroyPath == "" {
 			destroyPath = "."
+		}
+		configResult, err := config.LoadForPath(destroyPath)
+		if err != nil {
+			return err
+		}
+		if configResult.Found && configResult.Config.Terraform.ProtectDestroy && !destroyYes {
+			return fmt.Errorf("destroy is protected by %s; pass --yes only after reviewing the plan and policy", configResult.Path)
 		}
 		if destroyYes {
 			return nil

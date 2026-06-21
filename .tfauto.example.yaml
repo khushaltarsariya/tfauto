@@ -1,0 +1,18 @@
+project: tfauto-example
+environment: dev
+
+terraform:
+  require_plan_file: true
+  protect_destroy: true
+
+templates:
+  allowed:
+    - aws-three-tier-vpc
+    - aws-rds-postgres
+    - aws-lambda-apigateway
+
+policy:
+  require_tags:
+    - Owner
+    - Environment
+    - CostCenter
