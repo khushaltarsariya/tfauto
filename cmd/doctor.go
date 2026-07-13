@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"tfauto/internal/config"
@@ -10,6 +11,25 @@ import (
 )
 
 var doctorPath string
+var doctorJSON bool
+
+type doctorJSONOutput struct {
+	Command string                `json:"command"`
+	Path    string                `json:"path"`
+	Results []doctor.Result       `json:"results"`
+	Config  doctorConfigJSONState `json:"config"`
+	OK      bool                  `json:"ok"`
+}
+
+type doctorConfigJSONState struct {
+	Found            bool     `json:"found"`
+	Path             string   `json:"path,omitempty"`
+	RequirePlanFile  bool     `json:"require_plan_file,omitempty"`
+	ProtectDestroy   bool     `json:"protect_destroy,omitempty"`
+	AllowedTemplates []string `json:"allowed_templates,omitempty"`
+	RequiredTags     []string `json:"required_tags,omitempty"`
+	Error            string   `json:"error,omitempty"`
+}
 
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
@@ -28,6 +48,41 @@ Checks include:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report := doctor.Run(cmd.Context(), doctorPath)
 		configResult, configErr := config.LoadForPath(doctorPath)
+
+		if doctorJSON {
+			output := doctorJSONOutput{
+				Command: "doctor",
+				Path:    doctorPath,
+				Results: report.Results,
+				OK:      configErr == nil && !report.HasFailures(),
+			}
+			if configErr != nil {
+				output.Config = doctorConfigJSONState{
+					Found: false,
+					Error: configErr.Error(),
+				}
+			} else {
+				output.Config = doctorConfigJSONState{
+					Found:            configResult.Found,
+					Path:             configResult.Path,
+					RequirePlanFile:  configResult.Config.Terraform.RequirePlanFile,
+					ProtectDestroy:   configResult.Config.Terraform.ProtectDestroy,
+					AllowedTemplates: configResult.Config.Templates.Allowed,
+					RequiredTags:     configResult.Config.Policy.RequireTags,
+				}
+			}
+
+			encoder := json.NewEncoder(cmd.OutOrStdout())
+			encoder.SetIndent("", "  ")
+			if err := encoder.Encode(output); err != nil {
+				return err
+			}
+
+			if configErr != nil || report.HasFailures() {
+				return fmt.Errorf("doctor found one or more blocking issues")
+			}
+			return nil
+		}
 
 		fmt.Println("tfauto doctor")
 		fmt.Println()
@@ -73,5 +128,6 @@ Checks include:
 
 func init() {
 	doctorCmd.Flags().StringVar(&doctorPath, "path", ".", "Path to Terraform project")
+	doctorCmd.Flags().BoolVar(&doctorJSON, "json", false, "Output diagnostics as JSON")
 	rootCmd.AddCommand(doctorCmd)
 }

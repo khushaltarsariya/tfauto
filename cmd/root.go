@@ -27,6 +27,7 @@ var rootCmd = &cobra.Command{
 
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		startedAt = time.Now()
+		jsonOutput := commandRequestsJSON(cmd)
 
 		// Handle --chdir before running any command.
 
@@ -34,8 +35,10 @@ var rootCmd = &cobra.Command{
 			if err := os.Chdir(globalChdir); err != nil {
 				return fmt.Errorf("chdir to %q:%w", globalChdir, err)
 			}
-			abs, _ := filepath.Abs(".")
-			fmt.Println("Working directory:", abs)
+			if !jsonOutput {
+				abs, _ := filepath.Abs(".")
+				fmt.Println("Working directory:", abs)
+			}
 		}
 
 		if gloabalTimeout <= 0 {
@@ -54,9 +57,11 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("terraform not found in PATH: %w", err)
 		}
 
-		if globalDebug {
+		if globalDebug && !jsonOutput {
 			_ = os.Setenv("TF_LOG", "DEBUG")
 			fmt.Println("TF_LOG=DEBUG")
+		} else if globalDebug {
+			_ = os.Setenv("TF_LOG", "DEBUG")
 		}
 
 		return nil
@@ -68,7 +73,9 @@ var rootCmd = &cobra.Command{
 				cancle()
 			}
 		}
-		fmt.Printf("Done in %s\n", time.Since(startedAt).Round(time.Millisecond))
+		if !commandRequestsJSON(cmd) {
+			fmt.Printf("Done in %s\n", time.Since(startedAt).Round(time.Millisecond))
+		}
 	},
 }
 
@@ -87,6 +94,19 @@ func requiresTerraform(cmd *cobra.Command) bool {
 	}
 
 	return true
+}
+
+func commandRequestsJSON(cmd *cobra.Command) bool {
+	for current := cmd; current != nil; current = current.Parent() {
+		flag := current.Flags().Lookup("json")
+		if flag == nil {
+			continue
+		}
+		value, err := current.Flags().GetBool("json")
+		return err == nil && value
+	}
+
+	return false
 }
 
 func init() {

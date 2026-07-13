@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"tfauto/internal/config"
@@ -9,6 +10,26 @@ import (
 )
 
 var configPath string
+var configJSON bool
+
+type configJSONOutput struct {
+	Command string           `json:"command"`
+	Path    string           `json:"path"`
+	Found   bool             `json:"found"`
+	OK      bool             `json:"ok"`
+	Details configJSONDetail `json:"details"`
+	Error   string           `json:"error,omitempty"`
+}
+
+type configJSONDetail struct {
+	ConfigPath       string   `json:"config_path,omitempty"`
+	Project          string   `json:"project,omitempty"`
+	Environment      string   `json:"environment,omitempty"`
+	RequirePlanFile  bool     `json:"require_plan_file,omitempty"`
+	ProtectDestroy   bool     `json:"protect_destroy,omitempty"`
+	AllowedTemplates []string `json:"allowed_templates,omitempty"`
+	RequiredTags     []string `json:"required_tags,omitempty"`
+}
 
 var configCmd = &cobra.Command{
 	Use:   "config",
@@ -20,6 +41,38 @@ var configCheckCmd = &cobra.Command{
 	Short: "Check the active .tfauto.yaml configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		result, err := config.LoadForPath(configPath)
+		if configJSON {
+			output := configJSONOutput{
+				Command: "config check",
+				Path:    configPath,
+				OK:      err == nil,
+			}
+			if err != nil {
+				output.Error = err.Error()
+			} else {
+				output.Found = result.Found
+				if result.Found {
+					output.Details = configJSONDetail{
+						ConfigPath:       result.Path,
+						Project:          result.Config.Project,
+						Environment:      result.Config.Environment,
+						RequirePlanFile:  result.Config.Terraform.RequirePlanFile,
+						ProtectDestroy:   result.Config.Terraform.ProtectDestroy,
+						AllowedTemplates: result.Config.Templates.Allowed,
+						RequiredTags:     result.Config.Policy.RequireTags,
+					}
+				}
+			}
+
+			encoder := json.NewEncoder(cmd.OutOrStdout())
+			encoder.SetIndent("", "  ")
+			if encodeErr := encoder.Encode(output); encodeErr != nil {
+				return encodeErr
+			}
+
+			return err
+		}
+
 		if err != nil {
 			return err
 		}
@@ -70,6 +123,7 @@ func printConfigSummary(result config.LoadResult) {
 
 func init() {
 	configCheckCmd.Flags().StringVar(&configPath, "path", ".", "Path to Terraform project")
+	configCheckCmd.Flags().BoolVar(&configJSON, "json", false, "Output configuration as JSON")
 	configCmd.AddCommand(configCheckCmd)
 	rootCmd.AddCommand(configCmd)
 }

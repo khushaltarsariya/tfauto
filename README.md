@@ -111,6 +111,13 @@ tfauto doctor --path ./network
 tfauto version
 ```
 
+For automation and CI, use JSON output:
+
+```bash
+tfauto doctor --path ./network --json
+tfauto config check --path ./network --json
+```
+
 ### Project guardrails with `.tfauto.yaml`
 
 Create a `.tfauto.yaml` file in a project or parent directory to define local workflow rules:
@@ -217,6 +224,7 @@ Windows PowerShell:
 CI:
 - `ci.yml` builds the CLI on every push and pull request
 - `release.yml` builds Linux, macOS, and Windows binaries when you push a tag like `v0.1.0`
+- release assets include `checksums.txt` for download verification
 
 Example release tag:
 
@@ -233,6 +241,7 @@ Before a public launch:
 - create the first tagged release such as `v0.1.0`
 - add screenshots or terminal demos to the repository page
 - publish example usage in the README or docs
+- document `--json` mode for CI and automation users
 
 ## Near-term next steps
 
