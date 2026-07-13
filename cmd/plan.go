@@ -15,7 +15,7 @@ var planJSON bool
 
 var planCmd = &cobra.Command{
 	Use:   "plan",
-	Short: "Generate a Terraform plan for a project directory",
+	Short: "Generate a Terraform plan",
 	Long: `Run terraform plan in a project directory.
 
 Examples:
@@ -23,7 +23,8 @@ Examples:
   tfauto plan --path ./app --out tfplan --detailed-exitcode
   tfauto plan --path ./app --json`,
 	Example: `  tfauto plan --path ./app
-  tfauto plan --path ./app --out tfplan --detailed-exitcode`,
+  tfauto plan --path ./app --out tfplan --detailed-exitcode
+  tfauto plan --path ./app --json`,
 	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -35,14 +36,14 @@ Examples:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		if err := terraform.Init(ctx, pathFlag); err != nil {
-			return fmt.Errorf("tfauto plan: terraform init failed: %w", err)
+			return fmt.Errorf("tfauto plan: terraform init: %w", err)
 
 		}
 
 		if planOut != "" {
 			result, err := terraform.PlanOut(ctx, pathFlag, planOut, planDetailedExitCode)
 			if err != nil {
-				return fmt.Errorf("tfauto plan: terraform plan -out: %w", err)
+				return fmt.Errorf("tfauto plan: terraform plan with -out: %w", err)
 			}
 			if result.HasChanges {
 				if planJSON || jsonRequested(cmd) {
@@ -75,7 +76,7 @@ Examples:
 		}
 		result, err := terraform.Plan(ctx, pathFlag, planDetailedExitCode)
 		if err != nil {
-			return fmt.Errorf("tfauto plan: terraform plan failed: %w", err)
+			return fmt.Errorf("tfauto plan: terraform plan: %w", err)
 		}
 		if result.HasChanges {
 			if planJSON || jsonRequested(cmd) {

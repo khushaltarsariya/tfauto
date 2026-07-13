@@ -15,7 +15,7 @@ var targetDir string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Scaffold a Terraform project from a built-in template",
+	Short: "Create a Terraform project from a built-in template",
 	Long: `Create a Terraform project from a built-in template.
 
 Examples:
@@ -25,7 +25,7 @@ Examples:
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if templateName == "" {
-			return fmt.Errorf("tfauto init: please specify --template (for example: aws-basic)")
+			return fmt.Errorf("tfauto init: missing required flag --template (for example: aws-basic)")
 		}
 
 		if targetDir == "" {
@@ -33,7 +33,7 @@ Examples:
 		}
 
 		if _, err := os.Stat(targetDir); err == nil {
-			return fmt.Errorf("tfauto init: target directory %s already exists", targetDir)
+			return fmt.Errorf("tfauto init: target directory %q already exists", targetDir)
 		}
 
 		configResult, err := loadConfigForPath(filepath.Dir(targetDir))
@@ -41,11 +41,11 @@ Examples:
 			return tfautoError("init", err)
 		}
 		if configResult.Found && len(configResult.Config.Templates.Allowed) > 0 && !templateAllowed(templateName, configResult.Config.Templates.Allowed) {
-			return fmt.Errorf("tfauto init: template %q is not allowed by %s", templateName, configResult.Path)
+			return fmt.Errorf("tfauto init: template %q is not allowed by %q", templateName, configResult.Path)
 		}
 
 		if err := generator.CopyTemplate(templateName, targetDir); err != nil {
-			return fmt.Errorf("tfauto init: copy template failed: %w", err)
+			return fmt.Errorf("tfauto init: copy template: %w", err)
 		}
 
 		if jsonRequested(cmd) {

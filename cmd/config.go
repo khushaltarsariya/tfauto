@@ -33,6 +33,9 @@ type configJSONDetail struct {
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Inspect tfauto project configuration",
+	Long: `Inspect the active tfauto project configuration.
+
+Use this command to confirm whether a .tfauto.yaml file is being applied.`,
 	Example: `  tfauto config check --path ./app
   tfauto config check --path ./app --json`,
 	Args: cobra.NoArgs,
@@ -42,7 +45,10 @@ var configCheckCmd = &cobra.Command{
 	Use:     "check",
 	Aliases: []string{"inspect"},
 	Short:   "Check the active .tfauto.yaml configuration",
-	Args:    cobra.NoArgs,
+	Long: `Check the active .tfauto.yaml configuration and show the resolved project rules.
+
+Use this command before init, apply, or destroy when you want to confirm policy behavior.`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		result, err := config.LoadForPath(configPath)
 		if configJSON {

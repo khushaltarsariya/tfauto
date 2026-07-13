@@ -19,7 +19,7 @@ var applyJSON bool
 var applyCmd = &cobra.Command{
 	Use:     "apply",
 	Aliases: []string{"deploy"},
-	Short:   "Apply Terraform changes in a project directory",
+	Short:   "Apply Terraform changes",
 	Long: `Run terraform apply in a project directory.
 
 Examples:
@@ -27,7 +27,8 @@ Examples:
   tfauto apply --path ./app --plan tfplan
   tfauto apply --path ./app --json`,
 	Example: `  tfauto apply --path ./app --yes
-  tfauto apply --path ./app --plan tfplan`,
+  tfauto apply --path ./app --plan tfplan
+  tfauto apply --path ./app --json`,
 	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -64,12 +65,12 @@ Examples:
 		ctx := cmd.Context()
 
 		if err := terraform.Init(ctx, applyPath); err != nil {
-			return fmt.Errorf("tfauto apply: terraform init failed: %w", err)
+			return fmt.Errorf("tfauto apply: terraform init: %w", err)
 		}
 
 		if applyPlanFile != "" {
 			if err := terraform.ApplyPlan(ctx, applyPath, applyPlanFile); err != nil {
-				return fmt.Errorf("tfauto apply: terraform apply saved plan failed: %w", err)
+				return fmt.Errorf("tfauto apply: terraform apply saved plan: %w", err)
 			}
 			if applyJSON || jsonRequested(cmd) {
 				return writeJSON(cmd.OutOrStdout(), map[string]any{
@@ -85,7 +86,7 @@ Examples:
 		}
 
 		if err := terraform.Apply(ctx, applyPath); err != nil {
-			return fmt.Errorf("tfauto apply: terraform apply failed: %w", err)
+			return fmt.Errorf("tfauto apply: terraform apply: %w", err)
 		}
 		if applyJSON || jsonRequested(cmd) {
 			return writeJSON(cmd.OutOrStdout(), map[string]any{

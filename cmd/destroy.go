@@ -17,7 +17,7 @@ var destroyJSON bool
 
 var destroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "Destroy Terraform-managed infrastructure with confirmation",
+	Short: "Destroy Terraform-managed infrastructure",
 	Long: `Run terraform destroy with confirmation.
 
 Examples:
@@ -25,7 +25,8 @@ Examples:
   tfauto destroy --path ./app
   tfauto destroy --path ./app --json`,
 	Example: `  tfauto destroy --path ./app
-  tfauto destroy --path ./app --yes`,
+  tfauto destroy --path ./app --yes
+  tfauto destroy --path ./app --json`,
 	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -37,7 +38,7 @@ Examples:
 			return tfautoError("destroy", err)
 		}
 		if configResult.Found && configResult.Config.Terraform.ProtectDestroy && !destroyYes {
-			return fmt.Errorf("tfauto destroy: destroy is protected by %s; pass --yes only after reviewing the plan and policy", configResult.Path)
+			return fmt.Errorf("tfauto destroy: destroy is protected by %q; pass --yes only after reviewing the plan and policy", configResult.Path)
 		}
 		if destroyYes {
 			return nil
@@ -60,13 +61,11 @@ Examples:
 		ctx := cmd.Context()
 
 		if err := terraform.Init(ctx, destroyPath); err != nil {
-			return fmt.Errorf("tfauto destroy: terraform init failed: %w", err)
-
+			return fmt.Errorf("tfauto destroy: terraform init: %w", err)
 		}
 
 		if err := terraform.Destroy(ctx, destroyPath); err != nil {
-			return fmt.Errorf("tfauto destroy: terraform destroy failed: %w", err)
-
+			return fmt.Errorf("tfauto destroy: terraform destroy: %w", err)
 		}
 		if destroyJSON || jsonRequested(cmd) {
 			return writeJSON(cmd.OutOrStdout(), map[string]any{

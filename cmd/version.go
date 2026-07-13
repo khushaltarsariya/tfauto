@@ -15,7 +15,7 @@ var (
 var versionCmd = &cobra.Command{
 	Use:     "version",
 	Aliases: []string{"ver", "v"},
-	Short:   "Show build information for tfauto",
+	Short:   "Show tfauto build information",
 	Long: `Show tfauto version.
 
 Examples:

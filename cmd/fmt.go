@@ -14,7 +14,7 @@ var fmtJSON bool
 
 var fmtCmd = &cobra.Command{
 	Use:   "fmt",
-	Short: "Format Terraform files in a project directory",
+	Short: "Format Terraform files",
 	Long: `Format Terraform files in a project directory.
 
 Examples:
@@ -22,7 +22,8 @@ Examples:
   tfauto fmt --path ./app --check
   tfauto fmt --path ./app --json`,
 	Example: `  tfauto fmt --path ./app
-  tfauto fmt --path ./app --check`,
+  tfauto fmt --path ./app --check
+  tfauto fmt --path ./app --json`,
 	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -35,7 +36,7 @@ Examples:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		if err := terraform.Fmt(ctx, fmtPath, fmtCheck); err != nil {
-			return fmt.Errorf("tfauto fmt: terraform fmt failed: %w", err)
+			return fmt.Errorf("tfauto fmt: terraform fmt: %w", err)
 		}
 		if fmtJSON || jsonRequested(cmd) {
 			return writeJSON(cmd.OutOrStdout(), map[string]any{
