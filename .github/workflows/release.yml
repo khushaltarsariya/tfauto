@@ -41,7 +41,7 @@ jobs:
         run: |
           mkdir -p dist
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build \
-            -ldflags "-X tfauto/cmd.version=${GITHUB_REF_NAME} -X tfauto/cmd.commit=${GITHUB_SHA::7} -X tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -ldflags "-X github.com/khushaltarsariya/tfauto/cmd.version=${GITHUB_REF_NAME} -X github.com/khushaltarsariya/tfauto/cmd.commit=${GITHUB_SHA::7} -X github.com/khushaltarsariya/tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             -o dist/${{ matrix.asset }}
 
       - name: Upload release artifact

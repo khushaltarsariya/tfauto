@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"tfauto/internal/terraform"
+
+	"github.com/khushaltarsariya/tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
 )

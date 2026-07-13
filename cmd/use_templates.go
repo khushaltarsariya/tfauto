@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	tplfs "tfauto/templates"
+	tplfs "github.com/khushaltarsariya/tfauto/templates"
 
 	"github.com/spf13/cobra"
 )

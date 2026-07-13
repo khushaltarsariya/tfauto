@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"tfauto/internal/config"
+	"github.com/khushaltarsariya/tfauto/internal/config"
 
 	"github.com/spf13/cobra"
 )

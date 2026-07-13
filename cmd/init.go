@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"tfauto/internal/generator"
+	"github.com/khushaltarsariya/tfauto/internal/generator"
 
 	"github.com/spf13/cobra"
 )

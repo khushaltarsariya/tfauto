@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"tfauto/cmd"
+	"github.com/khushaltarsariya/tfauto/cmd"
 )
 
 func main() {

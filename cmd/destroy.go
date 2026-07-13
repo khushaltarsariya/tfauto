@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"tfauto/internal/terraform"
+
+	"github.com/khushaltarsariya/tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
 )

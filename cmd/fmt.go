@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"tfauto/internal/terraform"
+
+	"github.com/khushaltarsariya/tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
 )

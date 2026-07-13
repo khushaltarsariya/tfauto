@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"tfauto/internal/config"
-	"tfauto/internal/doctor"
+	"github.com/khushaltarsariya/tfauto/internal/config"
+	"github.com/khushaltarsariya/tfauto/internal/doctor"
 
 	"github.com/spf13/cobra"
 )

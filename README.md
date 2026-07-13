@@ -35,7 +35,7 @@ Prerequisites:
 ```bash
 git clone https://github.com/khushaltarsariya/tfauto.git
 cd tfauto
-go build -ldflags "-X tfauto/cmd.version=v0.1.0 -X tfauto/cmd.commit=$(git rev-parse --short HEAD) -X tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o tfauto
+go build -ldflags "-X github.com/khushaltarsariya/tfauto/cmd.version=v0.1.0 -X github.com/khushaltarsariya/tfauto/cmd.commit=$(git rev-parse --short HEAD) -X github.com/khushaltarsariya/tfauto/cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o tfauto
 ```
 
 Windows PowerShell:
@@ -43,7 +43,7 @@ Windows PowerShell:
 ```powershell
 $commit = git rev-parse --short HEAD
 $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-go build -ldflags "-X tfauto/cmd.version=v0.1.0 -X tfauto/cmd.commit=$commit -X tfauto/cmd.date=$date" -o tfauto.exe
+go build -ldflags "-X github.com/khushaltarsariya/tfauto/cmd.version=v0.1.0 -X github.com/khushaltarsariya/tfauto/cmd.commit=$commit -X github.com/khushaltarsariya/tfauto/cmd.date=$date" -o tfauto.exe
 ```
 
 ## Quick start

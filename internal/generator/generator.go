@@ -2,7 +2,8 @@ package generator
 
 import (
 	"fmt"
-	tplfs "tfauto/templates"
+
+	tplfs "github.com/khushaltarsariya/tfauto/templates"
 )
 
 func CopyTemplate(name, targetDir string) error {
