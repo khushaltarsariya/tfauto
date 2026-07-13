@@ -59,18 +59,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-
-      - name: Flatten artifact directories
-        shell: bash
-        run: |
-          find dist -type f -exec mv {} dist/ \;
-          find dist -mindepth 1 -type d -empty -delete
+          merge-multiple: true
 
       - name: Generate checksums
         shell: bash
         run: |
-          cd dist
-          sha256sum tfauto-* > checksums.txt
+          shopt -s nullglob
+          files=(dist/tfauto-*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No release binaries found in dist/" >&2
+            exit 1
+          fi
+          sha256sum "${files[@]}" > dist/checksums.txt
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
