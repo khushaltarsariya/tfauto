@@ -105,7 +105,7 @@ Checks include:
 			fmt.Println("Config")
 			fmt.Println("------")
 			fmt.Println("[WARN] No .tfauto.yaml found")
-			fmt.Println("  - Command defaults will be used")
+			fmt.Println("  - command defaults will be used")
 			fmt.Println()
 		}
 

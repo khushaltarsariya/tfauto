@@ -56,8 +56,8 @@ Examples:
 						"exit_code":   2,
 					})
 				}
-				fmt.Println(tfautoMessage("plan", "terraform plan detected pending changes"))
-				fmt.Println(tfautoMessage("plan", "wrote plan to %s", planOut))
+				fmt.Println(tfautoMessage("plan", "pending changes detected"))
+				fmt.Println(tfautoMessage("plan", "plan written to %s", planOut))
 				return ExitError{Code: 2}
 			}
 			if planJSON || jsonRequested(cmd) {
@@ -70,7 +70,7 @@ Examples:
 					"exit_code":   0,
 				})
 			}
-			fmt.Println(tfautoMessage("plan", "wrote plan to %s", planOut))
+			fmt.Println(tfautoMessage("plan", "plan written to %s", planOut))
 			fmt.Println(tfautoMessage("plan", "completed successfully"))
 			return nil
 		}
@@ -88,7 +88,7 @@ Examples:
 					"exit_code":   2,
 				})
 			}
-			fmt.Println(tfautoMessage("plan", "terraform plan detected pending changes"))
+			fmt.Println(tfautoMessage("plan", "pending changes detected"))
 			return ExitError{Code: 2}
 		}
 		if planJSON || jsonRequested(cmd) {

@@ -59,7 +59,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		if _, err := exec.LookPath("terraform"); err != nil {
-			return fmt.Errorf("tfauto: terraform not found in PATH: %w", err)
+			return fmt.Errorf("tfauto: terraform is not installed or not available in PATH: %w", err)
 		}
 
 		if globalDebug && !jsonOutput {

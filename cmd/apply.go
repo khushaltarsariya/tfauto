@@ -81,7 +81,7 @@ Examples:
 					"saved_plan": true,
 				})
 			}
-			fmt.Println(tfautoMessage("apply", "saved plan applied successfully"))
+			fmt.Println(tfautoMessage("apply", "completed successfully (saved plan)"))
 			return nil
 		}
 

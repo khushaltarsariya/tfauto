@@ -85,8 +85,8 @@ Use this command before init, apply, or destroy when you want to confirm policy 
 			return err
 		}
 		if !result.Found {
-			fmt.Println("tfauto: no .tfauto.yaml found")
-			fmt.Println("tfauto: command defaults will be used")
+			fmt.Println("tfauto config: no .tfauto.yaml found")
+			fmt.Println("tfauto config: command defaults will be used")
 			return nil
 		}
 
@@ -98,7 +98,7 @@ Use this command before init, apply, or destroy when you want to confirm policy 
 func printConfigSummary(result config.LoadResult) {
 	cfg := result.Config
 
-	fmt.Println("tfauto: config")
+	fmt.Println("tfauto config")
 	fmt.Println()
 	fmt.Println("Path:", result.Path)
 	if cfg.Project != "" {

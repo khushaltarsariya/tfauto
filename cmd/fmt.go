@@ -47,7 +47,7 @@ Examples:
 			})
 		}
 		if fmtCheck {
-			fmt.Println(tfautoMessage("fmt", "check completed successfully"))
+			fmt.Println(tfautoMessage("fmt", "completed successfully (check only)"))
 		} else {
 			fmt.Println(tfautoMessage("fmt", "completed successfully"))
 		}

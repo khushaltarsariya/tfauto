@@ -60,7 +60,7 @@ Examples:
 			})
 		}
 
-		fmt.Println(tfautoMessage("init", "template copied to %s", targetDir))
+		fmt.Println(tfautoMessage("init", "project scaffolded at %s", targetDir))
 		return nil
 	},
 }
