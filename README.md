@@ -182,12 +182,17 @@ Each template follows the same structure:
 
 ```text
 templates/<template-name>/
+|- template.json
 |- DESCRIPTION.md
 |- main.tf
 |- outputs.tf
 |- provider.tf
 `- variables.tf
 ```
+
+`template.json` is the preferred manifest for new templates. Older templates that
+only have `DESCRIPTION.md` still work, and tfauto will infer reasonable metadata
+from their Terraform files.
 
 ## Architecture
 

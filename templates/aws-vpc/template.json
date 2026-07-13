@@ -1,0 +1,12 @@
+{
+  "name": "aws-vpc",
+  "description": "Simple AWS VPC with public subnets and routing foundations.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "networking",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$0-5/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "vpc", "subnets", "networking"]
+}

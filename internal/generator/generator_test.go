@@ -21,6 +21,7 @@ func TestCopyTemplateCopiesEmbeddedTemplate(t *testing.T) {
 		filepath.Join(targetDir, "outputs.tf"),
 		filepath.Join(targetDir, "provider.tf"),
 		filepath.Join(targetDir, "DESCRIPTION.md"),
+		filepath.Join(targetDir, "template.json"),
 	} {
 		if _, err := os.Stat(path); err != nil {
 			t.Fatalf("expected copied template file %s: %v", path, err)

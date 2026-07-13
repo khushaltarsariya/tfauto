@@ -1,0 +1,12 @@
+{
+  "name": "aws-alb-asg-webapp",
+  "description": "Application stack with ALB and Auto Scaling Group for an existing VPC.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "application",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$20-80/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "alb", "asg", "webapp", "compute"]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "aws-cloudfront-s3-static-site",
+  "description": "Private S3 static site delivered through CloudFront and OAC.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "frontend",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$0-10/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "cloudfront", "s3", "static-site", "frontend"]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "aws-basic",
+  "description": "Starter AWS EC2 environment with one public subnet, security group, and instance.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "starter",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$5-15/mo",
+  "required_terraform_version": ">= 1.0.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "ec2", "vpc", "starter", "public-subnet"]
+}

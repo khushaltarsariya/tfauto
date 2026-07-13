@@ -1,0 +1,12 @@
+{
+  "name": "aws-rds-postgres",
+  "description": "Managed PostgreSQL database baseline for private subnets in an existing VPC.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "database",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$50-150/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "rds", "postgres", "database"]
+}

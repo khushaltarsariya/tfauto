@@ -1,0 +1,12 @@
+{
+  "name": "aws-ecs-fargate-service",
+  "description": "ECS Fargate service with ALB, logs, and an autoscaling-ready baseline.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "application",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$25-100/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "ecs", "fargate", "application", "containers"]
+}
