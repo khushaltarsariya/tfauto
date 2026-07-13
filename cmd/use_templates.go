@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	tplfs "github.com/khushaltarsariya/tfauto/templates"
@@ -43,38 +44,13 @@ manifest with richer metadata.`,
 		if jsonRequested(cmd) {
 			return writeJSON(cmd.OutOrStdout(), map[string]any{
 				"command":  "template",
+				"ok":       true,
 				"template": metadata,
 				"files":    files,
 			})
 		}
 
-		fmt.Printf("tfauto: template %s\n", metadata.Name)
-		fmt.Println()
-		fmt.Println("Metadata:")
-		fmt.Printf("  Name: %s\n", displayField(metadata.Name))
-		fmt.Printf("  Version: %s\n", displayField(metadata.Version))
-		fmt.Printf("  Author: %s\n", displayField(metadata.Author))
-		fmt.Printf("  Category: %s\n", displayField(metadata.Category))
-		fmt.Printf("  Cloud provider: %s\n", displayField(metadata.CloudProvider))
-		fmt.Printf("  Estimated monthly cost: %s\n", displayField(metadata.EstimatedMonthlyCost))
-		fmt.Printf("  Required Terraform version: %s\n", displayField(metadata.RequiredTerraformVersion))
-		fmt.Printf("  Required providers: %s\n", joinDisplay(metadata.RequiredProviders))
-		fmt.Printf("  Tags: %s\n", joinDisplay(metadata.Tags))
-		fmt.Printf("  Metadata source: %s\n", displayField(metadata.MetadataSource))
-		if metadata.Description != "" {
-			fmt.Println()
-			fmt.Println("Description:")
-			fmt.Println(strings.TrimSpace(metadata.Description))
-		}
-		fmt.Println()
-		fmt.Println("Files:")
-		for _, file := range files {
-			fmt.Printf("  - %s\n", file)
-		}
-
-		fmt.Println()
-		fmt.Println("Next step:")
-		fmt.Printf("  tfauto init --template %s --target ./my-project\n", name)
+		renderTemplate(cmd.OutOrStdout(), metadata, files, name)
 
 		return nil
 	},
@@ -90,4 +66,34 @@ func joinDisplay(values []string) string {
 		return "-"
 	}
 	return strings.Join(values, ", ")
+}
+
+func renderTemplate(w io.Writer, metadata tplfs.TemplateMetadata, files []string, name string) {
+	fmt.Fprintf(w, "tfauto: template %s\n", metadata.Name)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Metadata:")
+	fmt.Fprintf(w, "  Name: %s\n", displayField(metadata.Name))
+	fmt.Fprintf(w, "  Version: %s\n", displayField(metadata.Version))
+	fmt.Fprintf(w, "  Author: %s\n", displayField(metadata.Author))
+	fmt.Fprintf(w, "  Category: %s\n", displayField(metadata.Category))
+	fmt.Fprintf(w, "  Cloud provider: %s\n", displayField(metadata.CloudProvider))
+	fmt.Fprintf(w, "  Estimated monthly cost: %s\n", displayField(metadata.EstimatedMonthlyCost))
+	fmt.Fprintf(w, "  Required Terraform version: %s\n", displayField(metadata.RequiredTerraformVersion))
+	fmt.Fprintf(w, "  Required providers: %s\n", joinDisplay(metadata.RequiredProviders))
+	fmt.Fprintf(w, "  Tags: %s\n", joinDisplay(metadata.Tags))
+	fmt.Fprintf(w, "  Metadata source: %s\n", displayField(metadata.MetadataSource))
+	if metadata.Description != "" {
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "Description:")
+		fmt.Fprintln(w, strings.TrimSpace(metadata.Description))
+	}
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Files:")
+	for _, file := range files {
+		fmt.Fprintf(w, "  - %s\n", file)
+	}
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Next step:")
+	fmt.Fprintf(w, "  tfauto init --template %s --target ./my-project\n", name)
 }

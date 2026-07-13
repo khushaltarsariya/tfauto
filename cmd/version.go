@@ -28,6 +28,7 @@ Examples:
 		if jsonRequested(cmd) {
 			return writeJSON(cmd.OutOrStdout(), map[string]any{
 				"command": "version",
+				"ok":      true,
 				"version": version,
 				"commit":  commit,
 				"date":    date,

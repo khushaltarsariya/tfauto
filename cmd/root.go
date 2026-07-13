@@ -25,7 +25,8 @@ var rootCmd = &cobra.Command{
 	Example: `  tfauto version
   tfauto templates
   tfauto init --template aws-basic --target ./my-project
-  tfauto plan --path ./my-project`,
+  tfauto plan --path ./my-project
+  tfauto doctor --path ./my-project`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 
