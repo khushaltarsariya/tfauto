@@ -14,6 +14,7 @@ var applyPath string
 var applyPlanFile string
 var applyYes bool
 var applyRequirePlan bool
+var applyJSON bool
 
 var applyCmd = &cobra.Command{
 	Use:     "apply",
@@ -23,7 +24,8 @@ var applyCmd = &cobra.Command{
 
 Examples:
   tfauto apply --path ./app --yes
-  tfauto apply --path ./app --plan tfplan`,
+  tfauto apply --path ./app --plan tfplan
+  tfauto apply --path ./app --json`,
 	Example: `  tfauto apply --path ./app --yes
   tfauto apply --path ./app --plan tfplan`,
 	Args: cobra.NoArgs,
@@ -69,12 +71,28 @@ Examples:
 			if err := terraform.ApplyPlan(ctx, applyPath, applyPlanFile); err != nil {
 				return fmt.Errorf("tfauto apply: terraform apply saved plan failed: %w", err)
 			}
+			if applyJSON || jsonRequested(cmd) {
+				return writeJSON(cmd.OutOrStdout(), map[string]any{
+					"command":    "apply",
+					"ok":         true,
+					"path":       applyPath,
+					"plan":       applyPlanFile,
+					"saved_plan": true,
+				})
+			}
 			fmt.Println(tfautoMessage("apply", "saved plan applied successfully"))
 			return nil
 		}
 
 		if err := terraform.Apply(ctx, applyPath); err != nil {
 			return fmt.Errorf("tfauto apply: terraform apply failed: %w", err)
+		}
+		if applyJSON || jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command": "apply",
+				"ok":      true,
+				"path":    applyPath,
+			})
 		}
 		fmt.Println(tfautoMessage("apply", "completed successfully"))
 		return nil
@@ -86,6 +104,7 @@ func init() {
 	applyCmd.Flags().StringVar(&applyPlanFile, "plan", "", "Apply a previously saved plan file")
 	applyCmd.Flags().BoolVar(&applyYes, "yes", false, "Confirm non-interactive apply when no saved plan file is provided")
 	applyCmd.Flags().BoolVar(&applyRequirePlan, "require-plan", false, "Require --plan for safer CI usage")
+	applyCmd.Flags().BoolVar(&applyJSON, "json", false, "Output apply details as JSON")
 	rootCmd.AddCommand(applyCmd)
 }
 

@@ -11,6 +11,7 @@ import (
 var pathFlag string
 var planOut string
 var planDetailedExitCode bool
+var planJSON bool
 
 var planCmd = &cobra.Command{
 	Use:   "plan",
@@ -19,7 +20,8 @@ var planCmd = &cobra.Command{
 
 Examples:
   tfauto plan --path ./app
-  tfauto plan --path ./app --out tfplan --detailed-exitcode`,
+  tfauto plan --path ./app --out tfplan --detailed-exitcode
+  tfauto plan --path ./app --json`,
 	Example: `  tfauto plan --path ./app
   tfauto plan --path ./app --out tfplan --detailed-exitcode`,
 	Args: cobra.NoArgs,
@@ -42,11 +44,32 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("tfauto plan: terraform plan -out: %w", err)
 			}
-			fmt.Println(tfautoMessage("plan", "wrote plan to %s", planOut))
 			if result.HasChanges {
-				fmt.Println(tfautoMessage("plan", "Terraform plan detected pending changes"))
+				if planJSON || jsonRequested(cmd) {
+					return writeJSON(cmd.OutOrStdout(), map[string]any{
+						"command":     "plan",
+						"ok":          true,
+						"path":        pathFlag,
+						"out":         planOut,
+						"has_changes": true,
+						"exit_code":   2,
+					})
+				}
+				fmt.Println(tfautoMessage("plan", "terraform plan detected pending changes"))
+				fmt.Println(tfautoMessage("plan", "wrote plan to %s", planOut))
 				return ExitError{Code: 2}
 			}
+			if planJSON || jsonRequested(cmd) {
+				return writeJSON(cmd.OutOrStdout(), map[string]any{
+					"command":     "plan",
+					"ok":          true,
+					"path":        pathFlag,
+					"out":         planOut,
+					"has_changes": false,
+					"exit_code":   0,
+				})
+			}
+			fmt.Println(tfautoMessage("plan", "wrote plan to %s", planOut))
 			fmt.Println(tfautoMessage("plan", "completed successfully"))
 			return nil
 		}
@@ -55,8 +78,26 @@ Examples:
 			return fmt.Errorf("tfauto plan: terraform plan failed: %w", err)
 		}
 		if result.HasChanges {
-			fmt.Println(tfautoMessage("plan", "Terraform plan detected pending changes"))
+			if planJSON || jsonRequested(cmd) {
+				return writeJSON(cmd.OutOrStdout(), map[string]any{
+					"command":     "plan",
+					"ok":          true,
+					"path":        pathFlag,
+					"has_changes": true,
+					"exit_code":   2,
+				})
+			}
+			fmt.Println(tfautoMessage("plan", "terraform plan detected pending changes"))
 			return ExitError{Code: 2}
+		}
+		if planJSON || jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command":     "plan",
+				"ok":          true,
+				"path":        pathFlag,
+				"has_changes": false,
+				"exit_code":   0,
+			})
 		}
 		fmt.Println(tfautoMessage("plan", "completed successfully"))
 		return nil
@@ -67,5 +108,6 @@ func init() {
 	planCmd.Flags().StringVar(&pathFlag, "path", ".", "Path to Terraform project")
 	planCmd.Flags().StringVar(&planOut, "out", "", "Write the plan to a file")
 	planCmd.Flags().BoolVar(&planDetailedExitCode, "detailed-exitcode", false, "Return exit code 2 when the plan contains changes")
+	planCmd.Flags().BoolVar(&planJSON, "json", false, "Output plan details as JSON")
 	rootCmd.AddCommand(planCmd)
 }

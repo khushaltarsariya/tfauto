@@ -9,6 +9,7 @@ import (
 )
 
 var validatePath string
+var validateJSON bool
 
 var validateCmd = &cobra.Command{
 	Use:   "validate",
@@ -16,7 +17,8 @@ var validateCmd = &cobra.Command{
 	Long: `Validate Terraform configuration in a project directory.
 
 Examples:
-  tfauto validate --path ./app`,
+  tfauto validate --path ./app
+  tfauto validate --path ./app --json`,
 	Example: `  tfauto validate --path ./app`,
 	Args:    cobra.NoArgs,
 
@@ -36,6 +38,13 @@ Examples:
 		if err := terraform.Validate(ctx, validatePath); err != nil {
 			return fmt.Errorf("tfauto validate: terraform validation failed: %w", err)
 		}
+		if validateJSON || jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command": "validate",
+				"ok":      true,
+				"path":    validatePath,
+			})
+		}
 		fmt.Println(tfautoMessage("validate", "completed successfully"))
 
 		return nil
@@ -44,5 +53,6 @@ Examples:
 
 func init() {
 	validateCmd.Flags().StringVar(&validatePath, "path", ".", "Path to Terraform project")
+	validateCmd.Flags().BoolVar(&validateJSON, "json", false, "Output validation details as JSON")
 	rootCmd.AddCommand(validateCmd)
 }

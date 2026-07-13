@@ -13,6 +13,7 @@ import (
 
 var destroyPath string
 var destroyYes bool
+var destroyJSON bool
 
 var destroyCmd = &cobra.Command{
 	Use:   "destroy",
@@ -21,7 +22,8 @@ var destroyCmd = &cobra.Command{
 
 Examples:
   tfauto destroy --path ./app --yes
-  tfauto destroy --path ./app`,
+  tfauto destroy --path ./app
+  tfauto destroy --path ./app --json`,
 	Example: `  tfauto destroy --path ./app
   tfauto destroy --path ./app --yes`,
 	Args: cobra.NoArgs,
@@ -66,6 +68,13 @@ Examples:
 			return fmt.Errorf("tfauto destroy: terraform destroy failed: %w", err)
 
 		}
+		if destroyJSON || jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command": "destroy",
+				"ok":      true,
+				"path":    destroyPath,
+			})
+		}
 		fmt.Println(tfautoMessage("destroy", "completed successfully"))
 		return nil
 	},
@@ -74,6 +83,7 @@ Examples:
 func init() {
 	destroyCmd.Flags().StringVar(&destroyPath, "path", ".", "Path to Terraform project")
 	destroyCmd.Flags().BoolVar(&destroyYes, "yes", false, "Skip interactive confirmation (non-interactive)")
+	destroyCmd.Flags().BoolVar(&destroyJSON, "json", false, "Output destroy details as JSON")
 	rootCmd.AddCommand(destroyCmd)
 }
 

@@ -48,6 +48,18 @@ Examples:
 			return fmt.Errorf("tfauto init: copy template failed: %w", err)
 		}
 
+		if jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command":   "init",
+				"ok":        true,
+				"template":  templateName,
+				"target":    targetDir,
+				"config":    configResult.Path,
+				"generated": true,
+				"message":   "template copied successfully",
+			})
+		}
+
 		fmt.Println(tfautoMessage("init", "template copied to %s", targetDir))
 		return nil
 	},
@@ -56,6 +68,7 @@ Examples:
 func init() {
 	initCmd.Flags().StringVar(&templateName, "template", "aws-basic", "Template name (see `tfauto templates`)")
 	initCmd.Flags().StringVar(&targetDir, "target", "./tf-project", "Target directory to copy templates")
+	initCmd.Flags().Bool("json", false, "Output initialization details as JSON")
 	rootCmd.AddCommand(initCmd)
 }
 

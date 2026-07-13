@@ -10,6 +10,7 @@ import (
 
 var fmtPath string
 var fmtCheck bool
+var fmtJSON bool
 
 var fmtCmd = &cobra.Command{
 	Use:   "fmt",
@@ -18,7 +19,8 @@ var fmtCmd = &cobra.Command{
 
 Examples:
   tfauto fmt --path ./app
-  tfauto fmt --path ./app --check`,
+  tfauto fmt --path ./app --check
+  tfauto fmt --path ./app --json`,
 	Example: `  tfauto fmt --path ./app
   tfauto fmt --path ./app --check`,
 	Args: cobra.NoArgs,
@@ -35,6 +37,14 @@ Examples:
 		if err := terraform.Fmt(ctx, fmtPath, fmtCheck); err != nil {
 			return fmt.Errorf("tfauto fmt: terraform fmt failed: %w", err)
 		}
+		if fmtJSON || jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command": "fmt",
+				"ok":      true,
+				"path":    fmtPath,
+				"check":   fmtCheck,
+			})
+		}
 		if fmtCheck {
 			fmt.Println(tfautoMessage("fmt", "check completed successfully"))
 		} else {
@@ -47,6 +57,7 @@ Examples:
 func init() {
 	fmtCmd.Flags().StringVar(&fmtPath, "path", ".", "Path to Terraform project")
 	fmtCmd.Flags().BoolVar(&fmtCheck, "check", false, "Check whether files are already formatted")
+	fmtCmd.Flags().BoolVar(&fmtJSON, "json", false, "Output formatting details as JSON")
 	rootCmd.AddCommand(fmtCmd)
 
 }
