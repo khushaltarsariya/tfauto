@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/khushaltarsariya/tfauto/internal/config"
 	"github.com/khushaltarsariya/tfauto/internal/doctor"
@@ -13,11 +14,13 @@ var doctorPath string
 var doctorJSON bool
 
 type doctorJSONOutput struct {
-	Command string                `json:"command"`
-	Path    string                `json:"path"`
-	Results []doctor.Result       `json:"results"`
-	Config  doctorConfigJSONState `json:"config"`
-	OK      bool                  `json:"ok"`
+	Command          string                `json:"command"`
+	Path             string                `json:"path"`
+	CurrentDirectory string                `json:"current_directory"`
+	Results          []doctor.Result       `json:"results"`
+	Summary          doctor.Summary        `json:"summary"`
+	Config           doctorConfigJSONState `json:"config"`
+	OK               bool                  `json:"ok"`
 }
 
 type doctorConfigJSONState struct {
@@ -38,14 +41,10 @@ var doctorCmd = &cobra.Command{
 	Long: `Run environment diagnostics before Terraform operations.
 
 Checks include:
-- target path validity
-- Terraform installation and version
-- presence of Terraform files
-- project initialization state
-- backend and workspace hints
-- variable prompt risk detection
-- AWS region resolution
-- AWS CLI and caller identity when available`,
+- Filesystem: current path, terraform binary, version, current directory, write permissions, Terraform files
+- Terraform: fmt, validate, backend configuration, providers, modules, initialization, workspace, variable prompts
+- AWS: credentials, profile, caller identity, region
+- Git: git binary and current branch`,
 	Example: `  tfauto doctor --path ./app
   tfauto doctor --path ./app --json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -54,10 +53,12 @@ Checks include:
 
 		if doctorJSON {
 			output := doctorJSONOutput{
-				Command: "doctor",
-				Path:    doctorPath,
-				Results: report.Results,
-				OK:      configErr == nil && !report.HasFailures(),
+				Command:          "doctor",
+				Path:             doctorPath,
+				CurrentDirectory: report.CurrentDirectory,
+				Results:          report.Results,
+				Summary:          report.Summary,
+				OK:               configErr == nil && !report.HasFailures() && !report.HasWarnings(),
 			}
 			if configErr != nil {
 				output.Config = doctorConfigJSONState{
@@ -79,29 +80,21 @@ Checks include:
 				return err
 			}
 
-			if configErr != nil || report.HasFailures() {
-				return fmt.Errorf("tfauto doctor: one or more blocking issues found")
-			}
-			return nil
+			return doctorExit(report, configErr)
 		}
 
 		fmt.Println("tfauto: doctor")
 		fmt.Println()
-
-		for _, result := range report.Results {
-			fmt.Printf("[%s] %s\n", result.Status, result.Name)
-			for _, detail := range result.Details {
-				fmt.Printf("  - %s\n", detail)
-			}
-			fmt.Println()
-		}
+		renderDoctorReport(report)
 
 		if configErr != nil {
-			fmt.Println("[FAIL] tfauto config")
-			fmt.Printf("  - %s\n\n", configErr)
+			fmt.Println("Config")
+			fmt.Println("------")
+			fmt.Printf("[FAIL] %s\n\n", configErr)
 		} else if configResult.Found {
-			fmt.Println("[PASS] tfauto config")
-			fmt.Printf("  - Found %s\n", configResult.Path)
+			fmt.Println("Config")
+			fmt.Println("------")
+			fmt.Printf("[PASS] %s\n", configResult.Path)
 			fmt.Printf("  - require_plan_file: %t\n", configResult.Config.Terraform.RequirePlanFile)
 			fmt.Printf("  - protect_destroy: %t\n", configResult.Config.Terraform.ProtectDestroy)
 			if len(configResult.Config.Policy.RequireTags) > 0 {
@@ -109,21 +102,14 @@ Checks include:
 			}
 			fmt.Println()
 		} else {
-			fmt.Println("[WARN] tfauto config")
-			fmt.Println("  - No .tfauto.yaml found")
+			fmt.Println("Config")
+			fmt.Println("------")
+			fmt.Println("[WARN] No .tfauto.yaml found")
 			fmt.Println("  - Command defaults will be used")
 			fmt.Println()
 		}
 
-		if configErr != nil {
-			return fmt.Errorf("tfauto doctor: one or more blocking issues found")
-		}
-		if report.HasFailures() {
-			return fmt.Errorf("tfauto doctor: one or more blocking issues found")
-		}
-
-		fmt.Println(tfautoMessage("doctor", "completed. no blocking issues found"))
-		return nil
+		return doctorExit(report, configErr)
 	},
 }
 
@@ -131,4 +117,35 @@ func init() {
 	doctorCmd.Flags().StringVar(&doctorPath, "path", ".", "Path to Terraform project")
 	doctorCmd.Flags().BoolVar(&doctorJSON, "json", false, "Output diagnostics as JSON")
 	rootCmd.AddCommand(doctorCmd)
+}
+
+func renderDoctorReport(report doctor.Report) {
+	currentSection := ""
+	for _, result := range report.Results {
+		if result.Section != currentSection {
+			currentSection = result.Section
+			fmt.Println(currentSection)
+			fmt.Println(strings.Repeat("-", len(currentSection)))
+		}
+
+		fmt.Printf("[%s] %s\n", result.Status, result.Name)
+		for _, detail := range result.Details {
+			fmt.Printf("  - %s\n", detail)
+		}
+		fmt.Println()
+	}
+	fmt.Printf("Summary: %d passed, %d warnings, %d failed\n\n", report.Summary.Pass, report.Summary.Warn, report.Summary.Fail)
+}
+
+func doctorExit(report doctor.Report, configErr error) error {
+	if configErr != nil {
+		return ExitError{Code: 1, Message: fmt.Sprintf("tfauto doctor: %v", configErr)}
+	}
+	if report.HasFailures() {
+		return ExitError{Code: 1, Message: "tfauto doctor: one or more blocking issues found"}
+	}
+	if report.HasWarnings() {
+		return ExitError{Code: 2, Message: "tfauto doctor: completed with warnings"}
+	}
+	return nil
 }

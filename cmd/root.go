@@ -77,7 +77,7 @@ var rootCmd = &cobra.Command{
 				cancle()
 			}
 		}
-		if !jsonRequested(cmd) {
+		if !jsonRequested(cmd) && cmd.Name() != "doctor" {
 			fmt.Printf("tfauto: completed in %s\n", time.Since(startedAt).Round(time.Millisecond))
 		}
 	},

@@ -27,6 +27,20 @@ func TestReportHasFailures(t *testing.T) {
 	}
 }
 
+func TestReportHasWarnings(t *testing.T) {
+	t.Parallel()
+
+	report := Report{
+		Results: []Result{
+			{Name: "warn", Status: StatusWarn},
+		},
+	}
+
+	if !report.HasWarnings() {
+		t.Fatal("HasWarnings returned false for report with a warning")
+	}
+}
+
 func TestCheckPath(t *testing.T) {
 	t.Parallel()
 
@@ -142,5 +156,23 @@ func TestAWSEnvironmentDetails(t *testing.T) {
 		if !strings.Contains(joined, expected) {
 			t.Fatalf("awsEnvironmentDetails missing %q in %q", expected, joined)
 		}
+	}
+}
+
+func TestCheckWritePermissions(t *testing.T) {
+	t.Parallel()
+
+	result := checkWritePermissions(t.TempDir())
+	if result.Status != StatusPass {
+		t.Fatalf("checkWritePermissions status = %s, want %s", result.Status, StatusPass)
+	}
+}
+
+func TestCheckCurrentDirectory(t *testing.T) {
+	t.Parallel()
+
+	result := checkCurrentDirectory(".")
+	if result.Status != StatusPass {
+		t.Fatalf("checkCurrentDirectory status = %s, want %s", result.Status, StatusPass)
 	}
 }
