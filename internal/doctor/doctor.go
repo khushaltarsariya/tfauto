@@ -21,14 +21,14 @@ const (
 )
 
 type Result struct {
-	Name    string
-	Status  Status
-	Details []string
+	Name    string   `json:"name"`
+	Status  Status   `json:"status"`
+	Details []string `json:"details"`
 }
 
 type Report struct {
-	Path    string
-	Results []Result
+	Path    string   `json:"path"`
+	Results []Result `json:"results"`
 }
 
 func (r Report) HasFailures() bool {

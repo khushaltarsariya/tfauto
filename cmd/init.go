@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"tfauto/internal/config"
+
 	"tfauto/internal/generator"
 
 	"github.com/spf13/cobra"
@@ -16,10 +16,15 @@ var targetDir string
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Create a Terraform project from a built-in template",
+	Long: `Create a Terraform project from a built-in template.
+
+Examples:
+  tfauto init --template aws-basic --target ./my-project`,
+	Args: cobra.NoArgs,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if templateName == "" {
-			return fmt.Errorf("please specify --template (for example: aws-basic)")
+			return fmt.Errorf("tfauto init: please specify --template (for example: aws-basic)")
 		}
 
 		if targetDir == "" {
@@ -27,22 +32,22 @@ var initCmd = &cobra.Command{
 		}
 
 		if _, err := os.Stat(targetDir); err == nil {
-			return fmt.Errorf("target directory %s already exists", targetDir)
+			return fmt.Errorf("tfauto init: target directory %s already exists", targetDir)
 		}
 
-		configResult, err := config.LoadForPath(filepath.Dir(targetDir))
+		configResult, err := loadConfigForPath(filepath.Dir(targetDir))
 		if err != nil {
-			return err
+			return tfautoError("init", err)
 		}
 		if configResult.Found && len(configResult.Config.Templates.Allowed) > 0 && !templateAllowed(templateName, configResult.Config.Templates.Allowed) {
-			return fmt.Errorf("template %q is not allowed by %s", templateName, configResult.Path)
+			return fmt.Errorf("tfauto init: template %q is not allowed by %s", templateName, configResult.Path)
 		}
 
 		if err := generator.CopyTemplate(templateName, targetDir); err != nil {
-			return fmt.Errorf("copy template: %w", err)
+			return fmt.Errorf("tfauto init: copy template failed: %w", err)
 		}
 
-		fmt.Println("Template copied to", targetDir)
+		fmt.Println(tfautoMessage("init", "template copied to %s", targetDir))
 		return nil
 	},
 }

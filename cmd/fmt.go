@@ -13,6 +13,12 @@ var fmtCheck bool
 var fmtCmd = &cobra.Command{
 	Use:   "fmt",
 	Short: "Format Terraform files in a project directory",
+	Long: `Format Terraform files in a project directory.
+
+Examples:
+  tfauto fmt --path ./app
+  tfauto fmt --path ./app --check`,
+	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if fmtPath == "" {
@@ -23,15 +29,13 @@ var fmtCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		fmt.Println("Running terraform fmt in", fmtPath)
-
 		if err := terraform.Fmt(ctx, fmtPath, fmtCheck); err != nil {
-			return fmt.Errorf("terraform fmt: %w", err)
+			return fmt.Errorf("tfauto fmt: terraform fmt failed: %w", err)
 		}
 		if fmtCheck {
-			fmt.Println("fmt check completed")
+			fmt.Println(tfautoMessage("fmt", "check completed successfully"))
 		} else {
-			fmt.Println("Terraform files formatted successfully")
+			fmt.Println(tfautoMessage("fmt", "completed successfully"))
 		}
 		return nil
 	},

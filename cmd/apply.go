@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"tfauto/internal/config"
 	"tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
@@ -18,34 +17,39 @@ var applyRequirePlan bool
 var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Run terraform apply in a project directory",
+	Long: `Run terraform apply in a project directory.
+
+Examples:
+  tfauto apply --path ./app --yes
+  tfauto apply --path ./app --plan tfplan`,
+	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if applyPath == "" {
 			applyPath = "."
 		}
 
-		configResult, err := config.LoadForPath(applyPath)
+		configResult, err := loadConfigForPath(applyPath)
 		if err != nil {
-			return err
+			return tfautoError("apply", err)
 		}
 		if configResult.Found && configResult.Config.Terraform.RequirePlanFile {
 			applyRequirePlan = true
-			fmt.Println("Project policy requires applying a saved plan file:", configResult.Path)
 		}
 
 		if applyRequirePlan && applyPlanFile == "" {
-			return fmt.Errorf("apply requires --plan because --require-plan or project policy is enabled")
+			return fmt.Errorf("tfauto apply: saved plan required; pass --plan because --require-plan or project policy is enabled")
 		}
 
 		if applyPlanFile != "" {
 			planPath := resolvePathFromProject(applyPath, applyPlanFile)
 			if _, err := os.Stat(planPath); err != nil {
-				return fmt.Errorf("plan file %q does not exist", applyPlanFile)
+				return fmt.Errorf("tfauto apply: plan file %q does not exist", applyPlanFile)
 			}
 		}
 
 		if applyPlanFile == "" && !applyYes {
-			return fmt.Errorf("apply without a saved plan requires --yes")
+			return fmt.Errorf("tfauto apply: non-interactive apply requires --yes or --plan")
 		}
 
 		return nil
@@ -53,26 +57,23 @@ var applyCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 
-		fmt.Println("Running terraform apply in", applyPath)
-
 		if err := terraform.Init(ctx, applyPath); err != nil {
-			return fmt.Errorf("terraform init failed: %w", err)
+			return fmt.Errorf("tfauto apply: terraform init failed: %w", err)
 		}
 
 		if applyPlanFile != "" {
 			if err := terraform.ApplyPlan(ctx, applyPath, applyPlanFile); err != nil {
-				return fmt.Errorf("terraform apply saved plan failed: %w", err)
+				return fmt.Errorf("tfauto apply: terraform apply saved plan failed: %w", err)
 			}
+			fmt.Println(tfautoMessage("apply", "saved plan applied successfully"))
 			return nil
 		}
 
 		if err := terraform.Apply(ctx, applyPath); err != nil {
-			return fmt.Errorf("terraform apply failed: %w", err)
+			return fmt.Errorf("tfauto apply: terraform apply failed: %w", err)
 		}
+		fmt.Println(tfautoMessage("apply", "completed successfully"))
 		return nil
-	},
-	PostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Apply completed")
 	},
 }
 

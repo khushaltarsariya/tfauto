@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"tfauto/internal/config"
 	"tfauto/internal/terraform"
 
 	"github.com/spf13/cobra"
@@ -17,30 +16,36 @@ var destroyYes bool
 var destroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "Run terraform destroy with confirmation",
+	Long: `Run terraform destroy with confirmation.
+
+Examples:
+  tfauto destroy --path ./app --yes
+  tfauto destroy --path ./app`,
+	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if destroyPath == "" {
 			destroyPath = "."
 		}
-		configResult, err := config.LoadForPath(destroyPath)
+		configResult, err := loadConfigForPath(destroyPath)
 		if err != nil {
-			return err
+			return tfautoError("destroy", err)
 		}
 		if configResult.Found && configResult.Config.Terraform.ProtectDestroy && !destroyYes {
-			return fmt.Errorf("destroy is protected by %s; pass --yes only after reviewing the plan and policy", configResult.Path)
+			return fmt.Errorf("tfauto destroy: destroy is protected by %s; pass --yes only after reviewing the plan and policy", configResult.Path)
 		}
 		if destroyYes {
 			return nil
 		}
 		if isNonInteractive() {
-			return fmt.Errorf("destroy requires --yes in non-interactive mode")
+			return fmt.Errorf("tfauto destroy: non-interactive mode requires --yes")
 		}
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Are you sure you want to destroy resources in %s? Type yes to confirm: ", destroyPath)
+		fmt.Printf("%s", tfautoMessage("destroy", "are you sure you want to destroy resources in %s? Type yes to confirm: ", destroyPath))
 		text, _ := reader.ReadString('\n')
 
 		if strings.TrimSpace(text) != "yes" {
-			return fmt.Errorf("aborted")
+			return fmt.Errorf("tfauto destroy: aborted")
 		}
 
 		return nil
@@ -50,20 +55,16 @@ var destroyCmd = &cobra.Command{
 		ctx := cmd.Context()
 
 		if err := terraform.Init(ctx, destroyPath); err != nil {
-			return fmt.Errorf("terraform init failed: %w", err)
+			return fmt.Errorf("tfauto destroy: terraform init failed: %w", err)
 
 		}
 
 		if err := terraform.Destroy(ctx, destroyPath); err != nil {
-			return fmt.Errorf("terraform destroy failed: %w", err)
+			return fmt.Errorf("tfauto destroy: terraform destroy failed: %w", err)
 
 		}
-		fmt.Println("Destroy complete")
-
+		fmt.Println(tfautoMessage("destroy", "completed successfully"))
 		return nil
-	},
-	PostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Destroy completed")
 	},
 }
 

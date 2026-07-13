@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+
 	"tfauto/internal/terraform"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -15,6 +15,12 @@ var planDetailedExitCode bool
 var planCmd = &cobra.Command{
 	Use:   "plan",
 	Short: "Run terraform plan in a project directory",
+	Long: `Run terraform plan in a project directory.
+
+Examples:
+  tfauto plan --path ./app
+  tfauto plan --path ./app --out tfplan --detailed-exitcode`,
+	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if pathFlag == "" {
@@ -24,38 +30,34 @@ var planCmd = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		fmt.Println("Running terraform plan in", pathFlag)
-
 		if err := terraform.Init(ctx, pathFlag); err != nil {
-			return fmt.Errorf("terraform init failed: %w", err)
+			return fmt.Errorf("tfauto plan: terraform init failed: %w", err)
 
 		}
 
 		if planOut != "" {
 			result, err := terraform.PlanOut(ctx, pathFlag, planOut, planDetailedExitCode)
 			if err != nil {
-				return fmt.Errorf("terraform plan -out: %w ", err)
+				return fmt.Errorf("tfauto plan: terraform plan -out: %w", err)
 			}
-			fmt.Println("Plan written to", planOut)
+			fmt.Println(tfautoMessage("plan", "wrote plan to %s", planOut))
 			if result.HasChanges {
-				fmt.Println("Terraform plan detected pending changes.")
+				fmt.Println(tfautoMessage("plan", "Terraform plan detected pending changes"))
 				return ExitError{Code: 2}
 			}
+			fmt.Println(tfautoMessage("plan", "completed successfully"))
 			return nil
 		}
 		result, err := terraform.Plan(ctx, pathFlag, planDetailedExitCode)
 		if err != nil {
-			return fmt.Errorf("terraform plan failed: %w", err)
+			return fmt.Errorf("tfauto plan: terraform plan failed: %w", err)
 		}
 		if result.HasChanges {
-			fmt.Println("Terraform plan detected pending changes.")
+			fmt.Println(tfautoMessage("plan", "Terraform plan detected pending changes"))
 			return ExitError{Code: 2}
 		}
+		fmt.Println(tfautoMessage("plan", "completed successfully"))
 		return nil
-	},
-
-	PostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("plan: completed at", time.Now().Format(time.RFC3339))
 	},
 }
 

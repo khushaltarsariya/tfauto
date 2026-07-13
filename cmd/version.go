@@ -15,13 +15,30 @@ var (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Show tfauto version",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("tfauto version %s\n", version)
-		fmt.Printf("commit %s\n", commit)
-		fmt.Printf("built %s\n", date)
+	Long: `Show tfauto version.
+
+Examples:
+  tfauto version
+  tfauto version --json`,
+	Args: cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if jsonRequested(cmd) {
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command": "version",
+				"version": version,
+				"commit":  commit,
+				"date":    date,
+			})
+		}
+
+		fmt.Printf("tfauto: version %s\n", version)
+		fmt.Printf("tfauto: commit %s\n", commit)
+		fmt.Printf("tfauto: built %s\n", date)
+		return nil
 	},
 }
 
 func init() {
+	versionCmd.Flags().Bool("json", false, "Output version information as JSON")
 	rootCmd.AddCommand(versionCmd)
 }

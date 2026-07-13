@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"tfauto/internal/config"
@@ -34,11 +33,13 @@ type configJSONDetail struct {
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Inspect tfauto project configuration",
+	Args:  cobra.NoArgs,
 }
 
 var configCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Check the active .tfauto.yaml configuration",
+	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		result, err := config.LoadForPath(configPath)
 		if configJSON {
@@ -64,9 +65,7 @@ var configCheckCmd = &cobra.Command{
 				}
 			}
 
-			encoder := json.NewEncoder(cmd.OutOrStdout())
-			encoder.SetIndent("", "  ")
-			if encodeErr := encoder.Encode(output); encodeErr != nil {
+			if encodeErr := writeJSON(cmd.OutOrStdout(), output); encodeErr != nil {
 				return encodeErr
 			}
 
@@ -77,8 +76,8 @@ var configCheckCmd = &cobra.Command{
 			return err
 		}
 		if !result.Found {
-			fmt.Println("No .tfauto.yaml found.")
-			fmt.Println("tfauto will use command defaults.")
+			fmt.Println("tfauto: no .tfauto.yaml found")
+			fmt.Println("tfauto: command defaults will be used")
 			return nil
 		}
 
@@ -90,7 +89,7 @@ var configCheckCmd = &cobra.Command{
 func printConfigSummary(result config.LoadResult) {
 	cfg := result.Config
 
-	fmt.Println("tfauto config")
+	fmt.Println("tfauto: config")
 	fmt.Println()
 	fmt.Println("Path:", result.Path)
 	if cfg.Project != "" {

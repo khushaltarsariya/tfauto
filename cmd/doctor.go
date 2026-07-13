@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"tfauto/internal/config"
@@ -34,6 +33,7 @@ type doctorConfigJSONState struct {
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
 	Short: "Run environment diagnostics for a Terraform project",
+	Args:  cobra.NoArgs,
 	Long: `Run environment diagnostics before Terraform operations.
 
 Checks include:
@@ -72,19 +72,17 @@ Checks include:
 				}
 			}
 
-			encoder := json.NewEncoder(cmd.OutOrStdout())
-			encoder.SetIndent("", "  ")
-			if err := encoder.Encode(output); err != nil {
+			if err := writeJSON(cmd.OutOrStdout(), output); err != nil {
 				return err
 			}
 
 			if configErr != nil || report.HasFailures() {
-				return fmt.Errorf("doctor found one or more blocking issues")
+				return fmt.Errorf("tfauto doctor: one or more blocking issues found")
 			}
 			return nil
 		}
 
-		fmt.Println("tfauto doctor")
+		fmt.Println("tfauto: doctor")
 		fmt.Println()
 
 		for _, result := range report.Results {
@@ -115,13 +113,13 @@ Checks include:
 		}
 
 		if configErr != nil {
-			return fmt.Errorf("doctor found one or more blocking issues")
+			return fmt.Errorf("tfauto doctor: one or more blocking issues found")
 		}
 		if report.HasFailures() {
-			return fmt.Errorf("doctor found one or more blocking issues")
+			return fmt.Errorf("tfauto doctor: one or more blocking issues found")
 		}
 
-		fmt.Println("Doctor completed. No blocking issues found.")
+		fmt.Println(tfautoMessage("doctor", "completed. no blocking issues found"))
 		return nil
 	},
 }

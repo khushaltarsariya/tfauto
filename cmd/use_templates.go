@@ -21,11 +21,29 @@ lists all files included in the template.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 		if !tplfs.Exists(name) {
-			return fmt.Errorf("template %q not found", name)
+			return fmt.Errorf("tfauto template: template %q not found", name)
 		}
 
-		fmt.Printf("Template: %s\n", name)
-		fmt.Printf("Source:   embedded in tfauto binary\n\n")
+		if jsonRequested(cmd) {
+			description, err := tplfs.Description(name)
+			if err != nil {
+				return fmt.Errorf("tfauto template: read template description: %w", err)
+			}
+			files, err := tplfs.Files(name)
+			if err != nil {
+				return fmt.Errorf("tfauto template: list template files: %w", err)
+			}
+			return writeJSON(cmd.OutOrStdout(), map[string]any{
+				"command":     "template",
+				"name":        name,
+				"source":      "embedded",
+				"description": strings.TrimSpace(description),
+				"files":       files,
+			})
+		}
+
+		fmt.Printf("tfauto: template %s\n", name)
+		fmt.Printf("Source: embedded in tfauto binary\n\n")
 
 		if description, err := tplfs.Description(name); err == nil && description != "" {
 			fmt.Println("Description:")
@@ -36,26 +54,27 @@ lists all files included in the template.`,
 			fmt.Println("(no DESCRIPTION.md found for this template)")
 			fmt.Println()
 		} else {
-			return fmt.Errorf("read template description: %w", err)
+			return fmt.Errorf("tfauto template: read template description: %w", err)
 		}
 
 		fmt.Println("Files in this template:")
 		files, err := tplfs.Files(name)
 		if err != nil {
-			return fmt.Errorf("list template files: %w", err)
+			return fmt.Errorf("tfauto template: list template files: %w", err)
 		}
 		for _, file := range files {
 			fmt.Printf("  - %s\n", file)
 		}
 
 		fmt.Println()
-		fmt.Println("You can use this template with:")
-		fmt.Println("  tfauto init --template", name, "--target ./my-project")
+		fmt.Println("Next step:")
+		fmt.Printf("  tfauto init --template %s --target ./my-project\n", name)
 
 		return nil
 	},
 }
 
 func init() {
+	use_templateCmd.Flags().Bool("json", false, "Output template details as JSON")
 	rootCmd.AddCommand(use_templateCmd)
 }
