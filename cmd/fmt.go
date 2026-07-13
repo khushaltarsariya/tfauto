@@ -18,6 +18,8 @@ var fmtCmd = &cobra.Command{
 Examples:
   tfauto fmt --path ./app
   tfauto fmt --path ./app --check`,
+	Example: `  tfauto fmt --path ./app
+  tfauto fmt --path ./app --check`,
 	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {

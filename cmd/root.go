@@ -19,9 +19,13 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:           "tfauto",
-	Short:         "Terraform workflow automation CLI",
-	Long:          "tfauto simplifies Terraform workflows with safer commands, reusable templates, and consistent project setup.",
+	Use:   "tfauto",
+	Short: "Terraform workflow automation CLI",
+	Long:  "tfauto standardizes Terraform workflows with safer commands, reusable templates, and consistent project setup.",
+	Example: `  tfauto version
+  tfauto templates
+  tfauto init --template aws-basic --target ./my-project
+  tfauto plan --path ./my-project`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 

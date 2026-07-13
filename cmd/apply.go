@@ -15,12 +15,15 @@ var applyYes bool
 var applyRequirePlan bool
 
 var applyCmd = &cobra.Command{
-	Use:   "apply",
-	Short: "Run terraform apply in a project directory",
+	Use:     "apply",
+	Aliases: []string{"deploy"},
+	Short:   "Apply Terraform changes in a project directory",
 	Long: `Run terraform apply in a project directory.
 
 Examples:
   tfauto apply --path ./app --yes
+  tfauto apply --path ./app --plan tfplan`,
+	Example: `  tfauto apply --path ./app --yes
   tfauto apply --path ./app --plan tfplan`,
 	Args: cobra.NoArgs,
 

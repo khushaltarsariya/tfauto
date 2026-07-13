@@ -8,10 +8,13 @@ import (
 )
 
 var list_templatesCmd = &cobra.Command{
-	Use:   "templates",
-	Short: "List available Terraform templates",
-	Long:  "List all available built-in Terraform templates embedded in the tfauto binary.",
-	Args:  cobra.NoArgs,
+	Use:     "templates",
+	Aliases: []string{"list", "ls"},
+	Short:   "List built-in Terraform templates",
+	Long:    "List all available built-in Terraform templates embedded in the tfauto binary.",
+	Example: `  tfauto templates
+  tfauto templates --json`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		names, err := tplfs.List()
 		if err != nil {

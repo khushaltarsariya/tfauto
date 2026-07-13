@@ -15,12 +15,13 @@ var targetDir string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Create a Terraform project from a built-in template",
+	Short: "Scaffold a Terraform project from a built-in template",
 	Long: `Create a Terraform project from a built-in template.
 
 Examples:
   tfauto init --template aws-basic --target ./my-project`,
-	Args: cobra.NoArgs,
+	Example: `  tfauto init --template aws-basic --target ./my-project`,
+	Args:    cobra.NoArgs,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if templateName == "" {

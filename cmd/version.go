@@ -13,12 +13,15 @@ var (
 )
 
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Show tfauto version",
+	Use:     "version",
+	Aliases: []string{"ver", "v"},
+	Short:   "Show build information for tfauto",
 	Long: `Show tfauto version.
 
 Examples:
   tfauto version
+  tfauto version --json`,
+	Example: `  tfauto version
   tfauto version --json`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {

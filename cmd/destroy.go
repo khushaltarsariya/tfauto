@@ -15,12 +15,14 @@ var destroyYes bool
 
 var destroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "Run terraform destroy with confirmation",
+	Short: "Destroy Terraform-managed infrastructure with confirmation",
 	Long: `Run terraform destroy with confirmation.
 
 Examples:
   tfauto destroy --path ./app --yes
   tfauto destroy --path ./app`,
+	Example: `  tfauto destroy --path ./app
+  tfauto destroy --path ./app --yes`,
 	Args: cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {

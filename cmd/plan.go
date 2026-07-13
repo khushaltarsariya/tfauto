@@ -14,11 +14,13 @@ var planDetailedExitCode bool
 
 var planCmd = &cobra.Command{
 	Use:   "plan",
-	Short: "Run terraform plan in a project directory",
+	Short: "Generate a Terraform plan for a project directory",
 	Long: `Run terraform plan in a project directory.
 
 Examples:
   tfauto plan --path ./app
+  tfauto plan --path ./app --out tfplan --detailed-exitcode`,
+	Example: `  tfauto plan --path ./app
   tfauto plan --path ./app --out tfplan --detailed-exitcode`,
 	Args: cobra.NoArgs,
 

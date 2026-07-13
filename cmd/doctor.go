@@ -31,9 +31,10 @@ type doctorConfigJSONState struct {
 }
 
 var doctorCmd = &cobra.Command{
-	Use:   "doctor",
-	Short: "Run environment diagnostics for a Terraform project",
-	Args:  cobra.NoArgs,
+	Use:     "doctor",
+	Aliases: []string{"check", "diagnose"},
+	Short:   "Inspect a Terraform project and its environment",
+	Args:    cobra.NoArgs,
 	Long: `Run environment diagnostics before Terraform operations.
 
 Checks include:
@@ -45,6 +46,8 @@ Checks include:
 - variable prompt risk detection
 - AWS region resolution
 - AWS CLI and caller identity when available`,
+	Example: `  tfauto doctor --path ./app
+  tfauto doctor --path ./app --json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		report := doctor.Run(cmd.Context(), doctorPath)
 		configResult, configErr := config.LoadForPath(doctorPath)

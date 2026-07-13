@@ -11,12 +11,15 @@ import (
 // templateCmd shows detailed information about a single template.
 // Usage: tfauto template <name>
 var use_templateCmd = &cobra.Command{
-	Use:   "template [name]",
-	Short: "Show detailed information about a Terraform template",
+	Use:     "template [name]",
+	Aliases: []string{"show", "inspect"},
+	Short:   "Show details for a built-in Terraform template",
 	Long: `Show detailed information about a Terraform template.
 
 It reads DESCRIPTION.md from the template folder (if present) and
 lists all files included in the template.`,
+	Example: `  tfauto template aws-basic
+  tfauto template aws-basic --json`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]

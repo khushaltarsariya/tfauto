@@ -33,13 +33,16 @@ type configJSONDetail struct {
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Inspect tfauto project configuration",
-	Args:  cobra.NoArgs,
+	Example: `  tfauto config check --path ./app
+  tfauto config check --path ./app --json`,
+	Args: cobra.NoArgs,
 }
 
 var configCheckCmd = &cobra.Command{
-	Use:   "check",
-	Short: "Check the active .tfauto.yaml configuration",
-	Args:  cobra.NoArgs,
+	Use:     "check",
+	Aliases: []string{"inspect"},
+	Short:   "Check the active .tfauto.yaml configuration",
+	Args:    cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		result, err := config.LoadForPath(configPath)
 		if configJSON {

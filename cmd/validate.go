@@ -11,12 +11,13 @@ var validatePath string
 
 var validateCmd = &cobra.Command{
 	Use:   "validate",
-	Short: "Validate Terraform configuration in a project directory",
+	Short: "Validate Terraform configuration for a project directory",
 	Long: `Validate Terraform configuration in a project directory.
 
 Examples:
   tfauto validate --path ./app`,
-	Args: cobra.NoArgs,
+	Example: `  tfauto validate --path ./app`,
+	Args:    cobra.NoArgs,
 
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if validatePath == "" {
