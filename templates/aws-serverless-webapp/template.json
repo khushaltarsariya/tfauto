@@ -1,0 +1,12 @@
+{
+  "name": "aws-serverless-webapp",
+  "description": "Low-cost startup web app with an S3 + CloudFront frontend, Lambda + API Gateway backend, and DynamoDB storage.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "serverless",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$0-25/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws", "hashicorp/archive"],
+  "tags": ["aws", "serverless", "frontend", "cloudfront", "lambda", "apigateway", "dynamodb", "startup", "cost-conscious"]
+}

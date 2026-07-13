@@ -181,6 +181,8 @@ When `protect_destroy` is enabled, destroy remains blocked unless the user expli
   Private S3 + CloudFront static site starter with OAC
 - `aws-startup-webapp`
   Cost-conscious startup stack with ALB frontend, ECS backend, private PostgreSQL, and a single NAT gateway
+- `aws-serverless-webapp`
+  Low-cost serverless web app with S3 + CloudFront frontend, Lambda API backend, and DynamoDB
 
 Each template follows the same structure:
 

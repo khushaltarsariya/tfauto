@@ -52,6 +52,25 @@ func TestMetadataReadsStartupTemplate(t *testing.T) {
 	}
 }
 
+func TestMetadataReadsServerlessWebappTemplate(t *testing.T) {
+	t.Parallel()
+
+	meta, err := Metadata("aws-serverless-webapp")
+	if err != nil {
+		t.Fatalf("Metadata returned error: %v", err)
+	}
+
+	if meta.Category != "serverless" {
+		t.Fatalf("Category = %q, want serverless", meta.Category)
+	}
+	if meta.CloudProvider != "aws" {
+		t.Fatalf("CloudProvider = %q, want aws", meta.CloudProvider)
+	}
+	if !meta.HasManifest {
+		t.Fatal("expected manifest-backed metadata")
+	}
+}
+
 func TestFilesExcludeMetadataFiles(t *testing.T) {
 	t.Parallel()
 
