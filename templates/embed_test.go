@@ -30,6 +30,28 @@ func TestMetadataReadsManifest(t *testing.T) {
 	}
 }
 
+func TestMetadataReadsStartupTemplate(t *testing.T) {
+	t.Parallel()
+
+	meta, err := Metadata("aws-startup-webapp")
+	if err != nil {
+		t.Fatalf("Metadata returned error: %v", err)
+	}
+
+	if !meta.HasManifest {
+		t.Fatal("expected manifest-backed metadata")
+	}
+	if meta.Category != "application" {
+		t.Fatalf("Category = %q, want application", meta.Category)
+	}
+	if meta.CloudProvider != "aws" {
+		t.Fatalf("CloudProvider = %q, want aws", meta.CloudProvider)
+	}
+	if len(meta.Tags) == 0 {
+		t.Fatal("expected tags to be populated")
+	}
+}
+
 func TestFilesExcludeMetadataFiles(t *testing.T) {
 	t.Parallel()
 

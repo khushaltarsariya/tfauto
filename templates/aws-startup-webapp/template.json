@@ -1,0 +1,12 @@
+{
+  "name": "aws-startup-webapp",
+  "description": "Cost-conscious startup web stack with an ALB frontend, ECS backend, private PostgreSQL database, and a single NAT gateway for outbound access.",
+  "version": "1.0.0",
+  "author": "tfauto",
+  "category": "application",
+  "cloud_provider": "aws",
+  "estimated_monthly_cost": "$45-140/mo",
+  "required_terraform_version": ">= 1.3.0",
+  "required_providers": ["hashicorp/aws"],
+  "tags": ["aws", "startup", "webapp", "ecs", "rds", "vpc", "three-tier", "cost-conscious"]
+}

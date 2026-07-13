@@ -159,6 +159,8 @@ When `protect_destroy` is enabled, destroy remains blocked unless the user expli
 
 ## Built-in templates
 
+- `aws-startup-webapp`
+  Recommended first choice for a startup web app: ALB frontend, ECS backend, private PostgreSQL, and a single NAT gateway
 - `aws-basic`
   Basic EC2 + networking starter
 - `aws-vpc`
@@ -177,6 +179,8 @@ When `protect_destroy` is enabled, destroy remains blocked unless the user expli
   Lambda function exposed through API Gateway HTTP API
 - `aws-cloudfront-s3-static-site`
   Private S3 + CloudFront static site starter with OAC
+- `aws-startup-webapp`
+  Cost-conscious startup stack with ALB frontend, ECS backend, private PostgreSQL, and a single NAT gateway
 
 Each template follows the same structure:
 
