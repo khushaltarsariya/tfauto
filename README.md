@@ -179,8 +179,6 @@ When `protect_destroy` is enabled, destroy remains blocked unless the user expli
   Lambda function exposed through API Gateway HTTP API
 - `aws-cloudfront-s3-static-site`
   Private S3 + CloudFront static site starter with OAC
-- `aws-startup-webapp`
-  Cost-conscious startup stack with ALB frontend, ECS backend, private PostgreSQL, and a single NAT gateway
 - `aws-serverless-webapp`
   Low-cost serverless web app with S3 + CloudFront frontend, Lambda API backend, and DynamoDB
 

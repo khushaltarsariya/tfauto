@@ -38,3 +38,39 @@ jobs:
           go build -o tfauto
           ./tfauto --help
           ./tfauto templates
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Verify formatting
+        shell: pwsh
+        run: terraform fmt -check -recursive templates
+
+      - name: Smoke test templates
+        shell: pwsh
+        run: .\scripts\validate_templates.ps1
+
+      - name: Build
+        shell: pwsh
+        run: go build ./...
+
+      - name: Smoke test CLI
+        shell: pwsh
+        run: |
+          go build -o tfauto.exe
+          .\tfauto.exe --help
+          .\tfauto.exe templates

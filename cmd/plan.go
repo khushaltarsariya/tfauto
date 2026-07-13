@@ -47,14 +47,17 @@ Examples:
 			}
 			if result.HasChanges {
 				if planJSON || jsonRequested(cmd) {
-					return writeJSON(cmd.OutOrStdout(), map[string]any{
+					if err := writeJSON(cmd.OutOrStdout(), map[string]any{
 						"command":     "plan",
 						"ok":          true,
 						"path":        pathFlag,
 						"out":         planOut,
 						"has_changes": true,
 						"exit_code":   2,
-					})
+					}); err != nil {
+						return err
+					}
+					return ExitError{Code: 2}
 				}
 				fmt.Println(tfautoMessage("plan", "pending changes detected"))
 				fmt.Println(tfautoMessage("plan", "plan written to %s", planOut))
@@ -80,13 +83,16 @@ Examples:
 		}
 		if result.HasChanges {
 			if planJSON || jsonRequested(cmd) {
-				return writeJSON(cmd.OutOrStdout(), map[string]any{
+				if err := writeJSON(cmd.OutOrStdout(), map[string]any{
 					"command":     "plan",
 					"ok":          true,
 					"path":        pathFlag,
 					"has_changes": true,
 					"exit_code":   2,
-				})
+				}); err != nil {
+					return err
+				}
+				return ExitError{Code: 2}
 			}
 			fmt.Println(tfautoMessage("plan", "pending changes detected"))
 			return ExitError{Code: 2}
