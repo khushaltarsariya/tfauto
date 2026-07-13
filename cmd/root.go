@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
 			if err := os.Chdir(globalChdir); err != nil {
 				return fmt.Errorf("tfauto: chdir to %q: %w", globalChdir, err)
 			}
-			if !jsonOutput {
+			if !jsonOutput && shouldShowRuntimeBanner(cmd) {
 				abs, _ := filepath.Abs(".")
 				fmt.Printf("tfauto: working directory %s\n", abs)
 			}
@@ -77,7 +77,7 @@ var rootCmd = &cobra.Command{
 				cancle()
 			}
 		}
-		if !jsonRequested(cmd) && cmd.Name() != "doctor" {
+		if !jsonRequested(cmd) && shouldShowRuntimeBanner(cmd) {
 			fmt.Printf("tfauto: completed in %s\n", time.Since(startedAt).Round(time.Millisecond))
 		}
 	},
@@ -93,6 +93,21 @@ func requiresTerraform(cmd *cobra.Command) bool {
 	for current := cmd; current != nil; current = current.Parent() {
 		switch current.Name() {
 		case "init", "templates", "template", "version", "doctor", "config", "completion", "help":
+			return false
+		}
+	}
+
+	return true
+}
+
+func shouldShowRuntimeBanner(cmd *cobra.Command) bool {
+	if cmd == nil {
+		return false
+	}
+
+	for current := cmd; current != nil; current = current.Parent() {
+		switch current.Name() {
+		case "version", "templates", "template", "config", "doctor", "completion", "help":
 			return false
 		}
 	}
